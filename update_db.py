@@ -28,3 +28,7 @@ conn.commit()
 conn.close()
 
 print("🎯 Limpeza concluída! Apenas 'investimentos' foi preservada.")
+ 
+ 
+ 
+ 
