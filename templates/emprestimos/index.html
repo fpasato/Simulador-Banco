@@ -1,0 +1,156 @@
+{% extends 'layouts/base_home.html' %}
+
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/emprestimos/style.css') }}">
+<main class="emprestimo-container">
+    <h1>Simulador de Empréstimo</h1>
+    <form id="emprestimo-form">
+        <div class="form-group">
+            <label for="valor">Valor do Empréstimo (R$):</label>
+            <input type="number" id="valor" name="valor" min="100" step="50" required>
+        </div>
+
+        <div class="form-group">
+            <label for="parcelas">Número de Parcelas:</label>
+            <select id="parcelas" name="parcelas" required>
+                {% for i in range(1, 37) %}
+                <option value="{{ i }}">{{ i }}x</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="loan-models">
+            <input type="radio" id="price" name="tipo" value="price" checked>
+            <label for="price">PRICE</label>
+
+            <input type="radio" id="sac" name="tipo" value="sac">
+            <label for="sac">SAC</label>
+        </div>
+
+        <button type="button" id="calcular">Simular</button>
+    </form>
+
+    <section id="resultado" class="resultado" style="display:none;">
+        <h2>Resumo do Empréstimo</h2>
+        <p>Valor solicitado: <span id="res-valor"></span></p>
+        <p>Modelo: <span id="res-modelo"></span></p>
+        <p>Taxa de juros: 0.7% ao mês</p>
+        <p>Total a pagar: <span id="res-total"></span></p>
+        <p>Parcela mensal: <span id="res-parcela"></span></p>
+        <p>Primeiro Pagamento: <span id="res-primeiro-vencimento"></span></p>
+        <p>Último Pagamento: <span id="res-ultimo-vencimento"></span></p>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Data de Vencimento</th>
+                    <th>Valor da Parcela</th>
+                </tr>
+            </thead>
+            <tbody id="parcelas-table">
+            </tbody>
+        </table>
+    </section>
+</main>
+
+<script>const JUROS_MENSAL = 0.007; // 0.7% ao mês
+
+    // Cálculo para Tabela PRICE (Parcelas Iguais)
+    function calcularPrice(valor, meses) {
+        let i = JUROS_MENSAL;
+        let valorParcela = valor * (i * Math.pow(1 + i, meses)) / (Math.pow(1 + i, meses) - 1);
+
+        let cronograma = [];
+        for (let n = 1; n <= meses; n++) {
+            cronograma.push({
+                numero: n,
+                valor: valorParcela
+            });
+        }
+        return cronograma;
+    }
+
+    // Cálculo para Tabela SAC (Amortização Constante, Parcela Decrescente)
+    function calcularSac(valor, meses) {
+        let amortizacao = valor / meses;
+        let saldoDevedor = valor;
+        let cronograma = [];
+
+        for (let n = 1; n <= meses; n++) {
+            let juros = saldoDevedor * JUROS_MENSAL;
+            let valorParcela = amortizacao + juros;
+
+            cronograma.push({
+                numero: n,
+                valor: valorParcela
+            });
+
+            saldoDevedor -= amortizacao;
+        }
+        return cronograma;
+    }
+
+    function gerarDatasParcelas(qtd) {
+        let hoje = new Date();
+        let datas = [];
+        for (let m = 1; m <= qtd; m++) {
+            let dataParcela = new Date(hoje.getFullYear(), hoje.getMonth() + m, hoje.getDate());
+            datas.push(dataParcela.toLocaleDateString('pt-BR'));
+        }
+        return datas;
+    }
+
+    document.getElementById('calcular').addEventListener('click', () => {
+        const valor = parseFloat(document.getElementById('valor').value);
+        const parcelas = parseInt(document.getElementById('parcelas').value);
+        const tipo = document.querySelector('input[name="tipo"]:checked').value;
+
+        if (valor && parcelas) {
+            let cronograma;
+
+            // Decide qual cálculo usar
+            if (tipo === 'sac') {
+                cronograma = calcularSac(valor, parcelas);
+            } else {
+                cronograma = calcularPrice(valor, parcelas);
+            }
+
+            const datas = gerarDatasParcelas(parcelas);
+            const totalPagar = cronograma.reduce((acc, p) => acc + p.valor, 0);
+
+            // Atualiza Resumo
+            const modeloNome = tipo === 'sac' ? 'SAC (Parcelas decrescentes)' : 'PRICE (Parcelas fixas)';
+            document.getElementById('res-modelo').innerText = modeloNome;
+            document.getElementById('res-primeiro-vencimento').innerText = datas[0];
+            document.getElementById('res-ultimo-vencimento').innerText = datas[datas.length - 1];
+            document.getElementById('res-valor').innerText = `R$ ${valor.toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.')}`;
+            document.getElementById('res-total').innerText = `R$ ${totalPagar.toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.')}`;
+
+            // No SAC as parcelas variam, então mostramos um texto explicativo ou a primeira parcela
+            const descParcela = tipo === 'sac' ? 'Inicia em' : 'Mensal';
+            document.getElementById('res-parcela').parentElement.innerHTML = `${descParcela}: <span id="res-parcela">R$ ${cronograma[0].valor.toFixed(2)}</span>`;
+
+            // Preenche a Tabela
+            let tbody = document.getElementById('parcelas-table');
+            tbody.innerHTML = '';
+
+            cronograma.forEach((p, i) => {
+                let tr = document.createElement('tr');
+                tr.innerHTML = `
+                <td>${p.numero}</td>
+                <td>${datas[i]}</td>
+                <td>R$ ${p.valor.toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.')}</td>
+            `;
+                tbody.appendChild(tr);
+            });
+
+            document.getElementById('resultado').style.display = 'block';
+        } else {
+            alert("Por favor, preencha o valor do empréstimo.");
+        }
+    });
+</script>
+
+{% include "components/popup.html" %}
+{% endblock %}

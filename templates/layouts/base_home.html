@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/home/base_home.css') }}?v={{ config.DEBUG }}">
+    <title>{% block title %}Meu Site{% endblock %}</title>
+    <script defer src="{{ url_for('static', filename='js/theme.js') }}"></script>
+</head>
+
+<body id="app">
+    <!-- SCRIPT INLINE LOGO APÓS O BODY - APLICA O TEMA ANTES DE QUALQUER CONTEÚDO -->
+    <script>
+        (function() {
+            // Remove qualquer classe existente e adiciona a correta
+            var savedTheme = localStorage.getItem('theme') || 'light';
+            document.body.classList.remove('lighttheme', 'darktheme');
+            document.body.classList.add(savedTheme + 'theme');
+        })();
+    </script>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components/header.css') }}?v={{ config.DEBUG }}">
+
+    <header class="header">
+        <a href="/home" class="header-logo">
+            <img src="../../static/images/logo.png" alt="Logo">
+        </a>
+
+        <nav class="nav-minimal">
+            <button id="theme-toggle" aria-label="Alternar tema">
+                <img src="{{ url_for('static', filename='icons/theme_icons/sun.png') }}" alt="Tema">
+            </button>
+            <a href="#" class="nav-link">PRODUTOS</a>
+            <a href="#" class="nav-link">SOBRE</a>
+            <a href="" class="nav-link">SUPORTE</a>
+            <a href="/logout" class="nav-link" id="logout-link">SAIR</a>
+        </nav>
+
+        <div class="wave-container">
+            <svg viewBox="0 0 1440 120" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+                <defs>
+                    <linearGradient id="wave-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" style="stop-color:#5FA8ED; stop-opacity:1" />
+                        <stop offset="50%" style="stop-color:#BE89ED; stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#7898EE; stop-opacity:1" />
+                    </linearGradient>
+                </defs>
+                <path fill="url(#wave-grad)" d="M0,60 C240,100 480,20 720,60 C960,100 1200,20 1440,60 V120 H0 Z"></path>
+            </svg>
+
+            <svg viewBox="0 0 1440 120" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+                <path fill="url(#wave-grad)" d="M0,60 C240,100 480,20 720,60 C960,100 1200,20 1440,60 V120 H0 Z"></path>
+            </svg>
+        </div>
+    </header>
+    {% block content %}
+    {% endblock %}
+    {% include "components/footer.html" %}
+
+</body>
+
+</html>

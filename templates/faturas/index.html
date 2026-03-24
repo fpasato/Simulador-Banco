@@ -1,0 +1,68 @@
+{% extends 'layouts/base_home.html' %}
+
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/faturas/style.css') }}">
+
+
+
+<main class="faturas-wrapper">
+    <div class="app-container">
+        <h1>Faturas</h1>
+
+        <!-- Saldo Disponível -->
+        <div id="saldo-atual" class="saldo-card">
+            <span>Saldo Disponível: R$ {{ "{:,.2f}".format(session['user_info']['saldo']) }}</span>
+            <button class="btn-pagar" id="btn-pagar-todas">Pagar Todas</button>
+        </div>
+        <div class="faturas-list">
+
+            {% if faturas %}
+            <h2 class="fatura-title">Você tem Faturas Pendentes</h2>
+            {% for fatura in faturas %}
+            <div class="fatura-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Tipo</th>
+                            <th>Valor</th>
+                            <th>Status</th>
+                            <th>Data de vencimento</th>
+                            <th>Juros</th>
+                            <th>Descrição</th>
+                            <th>Ação</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>{{ fatura.tipo }}</td>
+                            <td>R$ {{ "%.2f"|format(fatura.valor) }}</td>
+                            <td>{{ fatura.status }}</td>
+                            <td>{{ fatura.data_vencimento[:10].split('-')[2] }}/{{
+                                fatura.data_vencimento[:10].split('-')[1] }}/{{
+                                fatura.data_vencimento[:10].split('-')[0] }}</td>
+                            <td>{{ fatura.juros }}%</td>
+                            <td>{{ fatura.descricao }}</td>
+                            <td>
+                                <form method="post" action="/faturas/pagar">
+                                    <input type="hidden" name="fatura_id" value="{{ fatura.id }}">
+                                    <button type="submit" class="btn-pagar">Pagar</button>
+                                </form>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            {% endfor %}
+            {% else %}
+            <div class="fatura-container">
+                <h2 class="fatura-title">Você não tem faturas pendentes</h2>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</main>
+
+<script src="{{ url_for('static', filename='js/faturas.js') }}"></script>
+{% include "components/popup.html" %}
+
+{% endblock %}

@@ -1,0 +1,371 @@
+@import url('https://fonts.googleapis.com/css2?family=Comme:wght@100..900&family=Funnel+Display:wght@300..800&family=Varela+Round&display=swap');
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Comme', 'Funnel Display', 'Varela Round', sans-serif;
+  border: none;
+}
+
+/* ===== VARIÁVEIS GLOBAIS (sobrescritas pelos temas) ===== */
+:root {
+  --transition-default: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --radius-card: 20px;
+  --radius-panel: 16px;
+  --radius-md: clamp(0.75rem, 2vw, 1rem);
+  --shadow-sm: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+  --shadow-md: 0 20px 25px -5px rgb(0 0 0 / 0.05), 0 8px 10px -6px rgb(0 0 0 / 0.05);
+}
+
+/* ===== TEMA CLARO (padrão) ===== */
+body.lighttheme {
+  --bg-body: #FEFAFE;
+  --bg-panel: #FFFFFF;
+  --accent: #4F46E5;
+  --accent-hover: #3429ff;
+  --text-main: #111827;
+  --text-muted: #6B7280;
+  --border-light: #6f69e0;
+  --border-medium: #5A4FE8;
+  --success: #22C55E;
+  --danger: #EF4444;
+  --danger-hover: #DC2626;
+  --primary-light: #EEF2FF;
+  --img-color: brightness(0); /* usado para o logo */
+
+  /* variáveis específicas do header */
+  --header-bg: var(--bg-panel);
+  --nav-bg-mobile: rgba(255, 255, 255, 0.9);
+  --light-color: #1592ff;   /* mantido do efeito original */
+  --light-middle: #AB94EE;  /* mantido do efeito original */
+}
+
+/* ===== TEMA ESCURO ===== */
+body.darktheme {
+  --bg-body: #212121;
+  --bg-panel: #3c3c3c;
+  --accent: #4cecba;
+  --accent-hover: #4F46E5;
+  --text-main: #F9FAFB;
+  --text-muted: #7f62ff;
+  --border-light: #7f62ff;
+  --border-medium: #7f62ff;
+  --success: #58d5a1;
+  --danger: #EF4444;
+  --danger-hover: #F87171;
+  --primary-light: rgba(129, 140, 248, 0.15);
+  --img-color: brightness(0) invert(1); /* usado para o logo */
+
+  /* variáveis específicas do header */
+  --header-bg: var(--bg-panel);
+  --nav-bg-mobile: rgba(26, 26, 26, 0.9);
+  --light-color: #4cecba;   /* adaptado para o tema escuro */
+  --light-middle: #7f62ff;  /* adaptado para o tema escuro */
+}
+
+/* ===== RESET / BASE ===== */
+body {
+  background-color: var(--bg-body);
+  background-image: url('../images/bg.jpeg');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  transition: background-color 0.3s ease;
+  margin: 0;
+}
+
+footer {
+  margin-top: auto;
+  background-color: #ffffff;
+}
+
+/* ===== HEADER PRINCIPAL ===== */
+.header {
+  position: relative;
+  width: 100%;
+  height: 80px;
+  background: #ffffff;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 2%;
+  box-sizing: border-box;
+  overflow: hidden;
+  transition: background 0.3s ease;
+}
+
+/* Linha superior decorativa */
+.header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #627FA9, transparent);
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* Efeito de luz radial expansiva no hover */
+@property --raio-luz {
+  syntax: '<length>';
+  initial-value: 300px;
+  inherits: false;
+}
+@property --opacidade-luz {
+  syntax: '<number>';
+  initial-value: 0.8;
+  inherits: false;
+}
+
+.header::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(
+    circle at 0% 0%,
+    var(--light-color) 0px,
+    var(--light-middle) calc(var(--raio-luz) / 3),
+    transparent var(--raio-luz)
+  );
+  z-index: 5;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  transition: --raio-luz 1.5s cubic-bezier(0.4, 0, 0.2, 1),
+              --opacidade-luz 1.5s cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 1.5s ease;
+  opacity: var(--opacidade-luz);
+}
+
+.header:hover::after {
+  --raio-luz: 800px;
+  --opacidade-luz: 1;
+}
+
+/* ===== LOGO ===== */
+.header-logo {
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.header-logo img {
+  height: 70px;
+  max-height: 80px;
+  width: auto;
+  filter: var(--img-color);
+  opacity: 0.9;
+  transition: all var(--transition-default);
+}
+
+.header-logo:hover img {
+  filter: brightness(1) grayscale(0) drop-shadow(0 4px 8px #767FDF);
+  transform: scale(1.05);
+}
+
+/* ===== NAVEGAÇÃO ===== */
+.nav-minimal {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+  z-index: 10;
+}
+
+.nav-link {
+  text-decoration: none;
+  color: var(--text-main);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  position: relative;
+  transition: color 0.3s ease;
+  padding: 4px 0;
+}
+
+.nav-link:hover {
+  color: var(--accent);
+}
+
+.nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: -5px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: var(--accent);
+  transition: width 0.8s ease;
+}
+
+.nav-link:hover::after {
+  width: 100%;
+}
+
+/* Link de logout (se existir) */
+#logout-link {
+  color: var(--danger);
+}
+#logout-link:hover {
+  color: var(--danger-hover);
+}
+#logout-link::after {
+  background: var(--danger-hover);
+}
+
+/* ===== BOTÃO DE TEMA ===== */
+#theme-toggle {
+  background: var(--accent);
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  transition: transform 0.2s, background 0.3s;
+  padding: 0;
+  margin-left: 15px;
+}
+
+#theme-toggle img {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  filter: brightness(0) invert(1); /* ícone sempre branco */
+  transition: all 0.4s;
+}
+
+#theme-toggle:hover {
+  transform: scale(1.05);
+  background: var(--accent);
+  filter: brightness(1.1);
+}
+#theme-toggle:active {
+  transform: scale(0.95);
+}
+
+/* ===== ONDAS ANIMADAS ===== */
+.wave-container {
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  width: 200%;
+  display: flex;
+  line-height: 0;
+  opacity: 0.5;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.wave-container svg {
+  width: 50%;
+  height: 40px;
+  display: block;
+  animation: moveWave 15s linear infinite;
+}
+
+@keyframes moveWave {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+/* ===== RESPONSIVIDADE ===== */
+/* Tablet (max-width: 768px) */
+@media (max-width: 768px) {
+  .header {
+    padding: 0 1.5rem;
+    flex-direction: column;
+    height: auto;
+    min-height: 80px;
+    justify-content: center;
+  }
+
+  .header-logo {
+    margin: 0.75rem auto 0.5rem;
+  }
+
+  .header-logo img {
+    height: 90px;
+  }
+
+  .nav-minimal {
+    gap: 1.25rem;
+    justify-content: center;
+    width: 100%;
+    margin-bottom: 0.75rem;
+    padding: 0.5rem 0;
+    background: var(--nav-bg-mobile);
+    backdrop-filter: blur(4px);
+    border-radius: 40px;
+  }
+
+  .nav-link {
+    font-size: 0.85rem;
+  }
+
+  .wave-container svg {
+    height: 30px;
+  }
+
+  .header::after {
+    --raio-luz: 200px;
+  }
+  .header:hover::after {
+    --raio-luz: 500px;
+  }
+
+  #theme-toggle {
+    margin: 0 0 10px 0;
+    align-self: center;
+  }
+}
+
+/* Celular pequeno (max-width: 360px) */
+@media (max-width: 360px) {
+  .header-logo img {
+    height: 45px;
+  }
+
+  .nav-minimal {
+    gap: 0.75rem;
+  }
+
+  .nav-link {
+    font-size: 0.7rem;
+  }
+
+  .wave-container svg {
+    height: 20px;
+  }
+
+  .header::after {
+    --raio-luz: 150px;
+  }
+  .header:hover::after {
+    --raio-luz: 400px;
+  }
+}
+
+/* Ajuste para telas muito grandes (opcional) */
+@media (min-width: 1400px) {
+  .header {
+    padding: 0 4%;
+  }
+  .nav-minimal {
+    gap: 40px;
+  }
+  .nav-link {
+    font-size: 14px;
+  }
+  .header-logo img {
+    height: 80px;
+  }
+}

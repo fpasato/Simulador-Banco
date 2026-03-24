@@ -1,0 +1,58 @@
+{% extends "layouts/base_home.html" %}
+
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/extrato/style.css') }}">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<main>
+    <h1>Extrato de Transações</h1>
+
+    {% if transacoes %}
+    <div class="table-responsive">
+        <table class="table">
+            <thead class="table-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>Conta</th>
+                    <th>Valor (R$)</th>
+                    <th>Tipo</th>
+                    <th>Descrição</th>
+                    <th>Data</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for trans in transacoes %}
+                <tr>
+                    <td>{{ trans.id }}</td>
+                    <td>{{ trans.numero_conta }}</td>  <!-- ← agora exibe o número da conta -->
+                    <td class="{% if trans.tipo == 'deposito' %}text-success{% elif trans.tipo == 'debito' %}text-danger{% endif %}">
+                        {% if trans.tipo == 'deposito' %}
+                            + R$ {{ "%.2f"|format(trans.valor) }}
+                        {% elif trans.tipo == 'debito' %}
+                            - R$ {{ "%.2f"|format(trans.valor) }}
+                        {% else %}
+                            R$ {{ "%.2f"|format(trans.valor) }}
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span class="badge 
+                            {% if trans.tipo == 'deposito' %}bg-success
+                            {% elif trans.tipo == 'debito' %}bg-danger
+                            {% else %}bg-info{% endif %}">
+                            {{ trans.tipo|upper }}
+                        </span>
+                    </td>
+                    <td>{{ trans.descricao if trans.descricao else '—' }}</td>
+                    <td>{{ trans.data|replace('T', ' ') }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="alert alert-warning" role="alert">
+        Nenhuma transação encontrada.
+    </div>
+    {% endif %}
+</main>
+{% endblock %}

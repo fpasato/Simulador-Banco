@@ -1,0 +1,25 @@
+{% extends 'layouts/base_home.html' %}
+
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/versaldo/style.css') }}">
+
+<main>
+    <div class="container">
+        <h1>Meu Saldo</h1>
+
+        <div class="saldo-container">
+            <form action="" method="get">
+                <h3>Saldo disponível <span id="saldo">R$ {{ "{:,.2f}".format(conta_usuario['saldo']) }}</span></h3>
+                <h4>Titular <span id="titular">{{ conta_usuario['nome_completo'] }}</span></h4>
+                <h4>Número da conta <span id="numero">{{ conta_usuario['numero_conta'] }}</span></h4>
+                <h4>Pagamentos pendentes <span id="opagamentos">0</span></h4>
+                <h4>Valor pendente <span id="valor-pagamentos">R$ 0,00</span></h4>
+            </form>
+        </div>
+
+        <button id="btn-refresh" onclick="location.reload()">Atualizar</button>
+    </div>
+</main>
+
+{% include "components/popup.html" %}
+{% endblock %}

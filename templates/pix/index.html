@@ -1,0 +1,150 @@
+{% extends 'layouts/base_home.html' %}
+
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pix/style.css') }}">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<div class="pix-wrapper">
+    <div class="app-container">
+        <header class="header-pix">
+            <h1>Lumo <span>PIX</span></h1>
+        </header>
+
+        <div class="pix-balance">
+            <span>Saldo em conta</span>
+            <h2><span data-saldo>R$ {{ "{:,.2f}".format(session['user_info']['saldo']) }}</span></h2>
+        </div>
+
+        <div class="tabs-wrapper">
+            <input type="radio" name="pix-tabs" id="tab1" {% if session.get('active_tab') != 'transferir' %}checked{% endif %}>
+            <input type="radio" name="pix-tabs" id="tab2" {% if session.get('active_tab') == 'transferir' %}checked{% endif %}>
+
+            <div class="tabs-nav">
+                <label for="tab1" class="tab-label">Gerenciar Chaves</label>
+                <label for="tab2" class="tab-label">Pagar ou Transferir</label>
+            </div>
+
+            <div class="tabs-content">
+                <div id="content1" class="tab-pane {% if session.get('active_tab') != 'transferir' %}active{% endif %}">
+                    <div class="chaves-container">
+                        <div class="card">
+                            <h2>Minhas Chaves</h2>
+                            <div class="table-container">
+                                <table class="pix-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Tipo</th>
+                                            <th>Chave</th>
+                                            <th>Ação</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for key in keys %}
+                                        <tr>
+                                            <td><span class="type-badge">{{ key[2] }}</span></td>
+                                            <td>{{ key[3] }}</td>
+                                            <td>
+                                                {% if key[2] == 'aleatoria' %}
+                                                <a href="{{ url_for('pix.exclude_key', key_id=key[0]) }}"
+                                                    class="btn-danger-link">Remover</a>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <h2>Nova Chave</h2>
+                            <button type="button" class="btn-primary btn-ghost" onclick="generateKey()">
+                                Gerar Aleatória
+                            </button>
+
+                            <form method="post" action="/pix/register_key">
+                                <input type="text" name="chave" value="{{ session.get('temp_key', '') }}"
+                                    readonly class="input-readonly">
+
+                                <button type="submit" id="btn-confirmar" class="btn-primary" {% if not
+                                    session.get('temp_key') %}disabled{% endif %}>
+                                    Confirmar Registro
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <div id="content2" class="tab-pane {% if session.get('active_tab') == 'transferir' %}active{% endif %}">
+                    <div class="card transfer-card">
+                        <h2>Transferência Instantânea</h2>
+
+                        {% if not session.get('destinatario_nome') %}
+                        <!-- 🔹 FORM DE VERIFICAÇÃO -->
+                        <form method="post" action="/pix/transferir">
+                            <div class="input-group">
+                                <label>Chave PIX do destinatário</label>
+                                <div class="verify-wrapper">
+                                    <input type="text" name="chave_destino" required class="input-main">
+                                </div>
+                            </div>
+
+                            <div class="input-group">
+                                <label>Valor para transferir</label>
+                                <div class="currency-input">
+                                    <span class="currency-symbol">R$</span>
+                                    <input type="text" id="valor_mask_pix" name="valor_visual" placeholder="0,00" inputmode="numeric"
+                                        oninput="formatarMoeda(this)" required class="currency-input">
+                                    <input type="hidden" id="valor_real_pix" name="valor" value="">
+                                </div>
+                            </div>
+
+                            <button type="submit" name="action" value="verificar" class="btn-primary">
+                                Verificar destinatário
+                            </button>
+                        </form>
+
+                        {% else %}
+                        <!-- 🔹 CONFIRMAÇÃO -->
+                        <div class="box-destinatario">
+                            <h3>Confirmar transferência</h3>
+
+                            <p><strong>Nome:</strong> {{ session['destinatario_nome'] }}</p>
+                            <p><strong>CPF:</strong> {{ session['destinatario_cpf'] }}</p>
+                            <p><strong>Chave:</strong> {{ session['destinatario_chave'] }}</p>
+                            <p><strong>Valor:</strong> R$ {{ session['destinatario_valor'] }}</p>
+
+                            <form method="POST" action="/pix/transferir">
+                                <input type="hidden" name="action" value="pagar">
+                                <input type="hidden" name="chave_destino" value="{{ session['destinatario_chave'] }}">
+                                <input type="hidden" name="valor" value="{{ session['destinatario_valor'] }}">
+
+                                <button type="submit" class="btn-primary">
+                                    Confirmar pagamento
+                                </button>
+                            </form>
+
+                            <!-- botão cancelar -->
+                            <form method="POST" action="/pix/cancelar">
+                                <button type="submit" class="btn-secondary">
+                                    Cancelar
+                                </button>
+                            </form>
+                        </div>
+                        {% endif %}
+
+                        <p class="security-note">
+                            🔒 Transação protegida pelo Lumo Digital
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+  
+</script>
+
+<script src="{{ url_for('static', filename='js/pix.js') }}"></script>
+{% include "components/popup.html" %}
+{% endblock %}

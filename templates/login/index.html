@@ -1,0 +1,43 @@
+{% extends "layouts/base.html" %}
+
+{% block content %}
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/login/style.css') }}">
+
+<main class="home-main">
+    <div class="container">
+        <section class="section-login">
+            <h1 class="login-title">Acesse sua conta</h1>
+            <form action="/login" method="POST" class="form-login">
+                <div class="input-group">
+                    <label for="email">
+                        <img src="{{ url_for('static', filename='icons/login/e-mail.png') }}" alt="Ícone de email">
+                    </label>
+                    <input type="email" id="email" name="email" placeholder="Email" required>
+                </div>
+
+                <div class="input-group">
+                    <label for="password">
+                        <img src="{{ url_for('static', filename='icons/login/old-big-key.png') }}" alt="Ícone de senha">
+                    </label>
+                    <input type="password" id="password" name="password" placeholder="Senha" required maxlength="8"
+                        inputmode="numeric" pattern="[0-9]{8}" title="Digite exatamente 8 números">
+                </div>
+
+                <button type="submit" class="btn-login">Login</button>
+                <a href="/register" class="link-register">Cadastre-se</a>
+            </form>
+        </section>
+
+        <article class="container-title">
+            <h2>Confiança para hoje. Prosperidade para o futuro.</h2>
+            <p class="tagline">Entre para começar sua jornada</p>
+        </article>
+    </div>
+</main>
+
+<script src="{{ url_for('static', filename='js/maskcpf.js') }}"></script>
+<!-- inclui o popup -->
+{% include "components/popup.html" %}
+
+{% endblock %}

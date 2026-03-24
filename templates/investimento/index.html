@@ -1,0 +1,161 @@
+{% extends 'layouts/base_home.html' %}
+
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/investimentos/style.css') }}">
+<script>
+    window.initialCarteira = {{ carteira | tojson | safe }};
+</script>
+<script src="{{ url_for('static', filename='js/investimento.js') }}"></script>
+
+
+
+<div class="invest-wrapper">
+    <div class="app-container">
+        <header class="invest-header">
+            <div class="balance-card">
+                <span>Saldo disponível para investir</span>
+                <h2 id="saldo-atual">R$ {{ "{:,.2f}".format(saldo) }}</h2>
+            </div>
+        </header>
+
+        <div class="tabs-wrapper">
+            <input type="radio" name="invest-tabs" id="tab-carteira" checked>
+            <input type="radio" name="invest-tabs" id="tab-explorar">
+
+            <div class="tabs-nav">
+                <label for="tab-carteira" class="tab-label">Minha Carteira</label>
+                <label for="tab-explorar" class="tab-label">Investir Agora</label>
+            </div>
+
+            <div class="tabs-content">
+                <div id="content-carteira" class="tab-pane">
+                    <h3 class="section-title" style="margin-bottom: 15px;">Ativos em Custódia</h3>
+                    <div class="investimentos-lista">
+                        {% if carteira %}
+                        {% for investimento in carteira %}
+                        <div class="invest-item-card" data-id="{{ investimento.id }}"
+                            data-investimento-id="{{ investimento.investimento_id }}"
+                            data-temporario="{{ investimento.temporario }}"
+                            data-quantidade="{{ investimento.quantidade }}" data-saldo="{{ investimento.saldo }}">
+
+                            <div class="item-info">
+                                <strong>{{ investimento.nome }}</strong>
+                            </div>
+                            <div class="item-details" style="display: flex; gap: 20px; flex-wrap: wrap;">
+                                <div><small>Qtd:</small> <strong class="card-qtd">{{ investimento.quantidade }}</strong>
+                                </div>
+                                <div><small>Saldo:</small> <strong class="card-saldo">R$ {{
+                                        "{:,.2f}".format(investimento.saldo) }}</strong></div>
+                                <div><small>Lucro/Prejuízo:</small>
+                                <strong class="card-lucro {% if investimento.lucro_prejuizo > 0 %}positive{% elif investimento.lucro_prejuizo < 0 %}negative{% endif %}">
+                                    R$ {{ "{:,.2f}".format(investimento.lucro_prejuizo) }}
+                                </strong>
+                                </div>
+                                {% if investimento.temporario %}
+                                <div><small>Tempo restante:</small>
+                                    <strong class="tempo-restante">--</strong>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                        {% else %}
+                        <div class="empty-state">
+                            <h3>Você ainda não tem investimentos</h3>
+                            <p style="color: var(--text-muted); margin-top: 5px;">Acesse a aba "Investir Agora" para
+                                começar.</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div id="content-explorar" class="tab-pane">
+                    <div class="ativos-grid">
+                        {% for ativo in investimentos_disponiveis %}
+                        <div class="ativo-card" data-nome="{{ ativo['nome'] }}"
+                            data-descricao="{{ ativo['descricao'] }}" data-preco="{{ ativo['valor_cota'] }}"
+                            data-risco="{{ ativo['risco'] }}" data-ativo-id="{{ ativo['id'] }}">
+                            <h3>{{ ativo['nome'] }}</h3>
+                            <span style="font-size: 0.85rem; color: var(--text-muted);">Risco: {{ ativo['risco']
+                                }}</span>
+                            <p class="ativo-preco" style="font-weight: bold; color: var(--primary); font-size: 1.2rem;">
+                                R$ {{
+                                "{:,.2f}".format(ativo['valor_cota']) }}</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="modal-overlay" class="modal-overlay">
+    <div class="modal-card">
+        <button class="close-modal">&times;</button>
+
+        <div class="modal-grid">
+            <div class="modal-left">
+                <h2 id="modal-titulo">Nome do Ativo</h2>
+                <span id="modal-risco"
+                    style="display:inline-block; padding: 4px 10px; background: #f1f5f9; border-radius: 6px; font-size: 0.85rem; width: max-content;">Risco</span>
+                <p id="modal-info" class="modal-desc">Descrição detalhada do ativo vai aparecer aqui...</p>
+                <div id="modal-carteira-extra" style="display:none; margin-top: 10px;">
+                    <p style="margin: 0 0 6px 0;"><small>Quantidade:</small> <strong id="modal-qtd-carteira">0</strong>
+                    </p>
+                    <p style="margin: 0;"><small>Lucro/Prejuízo:</small> <strong id="modal-lucro-prejuizo">R$
+                            0,00</strong></p>
+                </div>
+                <hr style="border: none; border-top: 1px solid var(--border); margin: 20px 0;">
+
+                <h4>Valor da Cota</h4>
+                <div id="modal-preco" class="modal-price">R$ 0,00</div>
+
+                <div style="margin-top: 12px; display:flex; gap: 12px; flex-wrap: wrap;">
+                    <div><small>Valor da carteira:</small> <strong id="modal-valor-carteira">R$ 0,00</strong></div>
+                    <div><small>Saldo conta:</small> <strong id="modal-saldo-conta">R$ 0,00</strong></div>
+                </div>
+
+                <form action="{{ url_for('investimento.comprar') }}" method="POST" id="form-comprar"
+                    style="margin-top: 18px;">
+                    <input type="hidden" name="investimento_id" id="input-investimento-id">
+                    <div style="margin-bottom: 15px;">
+                        <label>Quantidade:</label>
+                        <input type="number" name="quantidade" value="1" min="1" id="input-quantidade-compra"
+                            class="form-input" style="width: 100%; padding: 8px;">
+                        <label>Tempo:</label>
+                        <select name="tempo" id="input-tempo-compra" class="form-input"
+                            style="width: 100%; padding: 8px;">
+                            <option value="10000">10 segundos</option>
+                            <option value="30000">30 segundos</option>
+                            <option value="60000">1 minuto</option>
+                            <option value="300000">5 minutos</option>
+                            <option value="600000">10 minutos</option>
+                            <option value="1800000">30 minutos</option>
+                            <option value="3600000">1 hora</option>
+                            <option value="86400000">1 dia</option>
+                        </select>
+                    </div>
+                    <div style="margin-bottom: 12px;">
+                        <small>Valor para comprar:</small> <strong id="modal-total-compra">R$ 0,00</strong>
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="width: 100%; padding: 15px;">Confirmar
+                        Investimento</button>
+                </form>
+            </div>
+
+
+            <div class="modal-right">
+                <h4>Histórico de preços</h4>
+                <div style="position: relative; height: 320px; margin-top: 10px;">
+                    <canvas id="modal-historico-chart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% include "components/popup.html" %}
+{% endblock %}

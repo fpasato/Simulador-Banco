@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/global.css') }}?v={{ config.DEBUG }}">
+    <title>{% block title %}Meu Site{% endblock %}</title>
+</head>
+
+<body>
+
+{% include "components/header.html" %}
+
+{% block content %}
+{% endblock %}
+
+{% include "components/footer.html" %}
+
+</body>
+
+</html>

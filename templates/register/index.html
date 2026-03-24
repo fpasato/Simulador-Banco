@@ -1,0 +1,158 @@
+{% extends "layouts/base.html" %}
+
+{% block content %}
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/register/style.css') }}">
+
+<main class="home-main">
+    <div class="bg-overlay"></div>
+
+    <div class="container">
+
+        <section class="section-login">
+            <h1 class="login-title">Crie sua conta</h1>
+
+            <!-- quando o submit for enviado, ele deve executar a função register() no app.py e redirecionar para a página de home -->
+            <form action="/register" method="POST" class="form-login"> 
+
+                <div class="input-group">
+                    <label for="name">
+                        <img src="{{ url_for('static', filename='icons/login/avatar.png') }}" alt="Ícone de usuário">
+                    </label>
+
+                    <input 
+                        type="text" 
+                        id="name" 
+                        name="name" 
+                        placeholder="Nome completo" 
+                        required
+                    >
+                </div>
+
+                <div class="input-group">
+                    <label for="cpf">
+                        <img src="{{ url_for('static', filename='icons/login/cpf.png') }}" alt="Ícone de cpf">
+                    </label>
+
+                    <input 
+                        type="text" 
+                        id="cpf" 
+                        name="cpf" 
+                        placeholder="CPF" 
+                        required 
+                        maxlength="14"
+                    >
+                </div>
+
+                <div class="input-group">
+                    <label for="email">
+                        <img src="{{ url_for('static', filename='icons/login/e-mail.png') }}" alt="Ícone de email">
+                    </label>
+
+                    <input 
+                        type="text" 
+                        id="email" 
+                        name="email" 
+                        placeholder="Email" 
+                        required
+                    >
+                </div>
+                
+                <div class="input-group">
+                    <label for="password">
+                        <img src="{{ url_for('static', filename='icons/login/old-big-key.png') }}" alt="Ícone de senha">
+                    </label>
+
+                    <input 
+                        type="password" 
+                        id="password" 
+                        name="password" 
+                        placeholder="Senha" 
+                        required 
+                        maxlength="8"
+                        inputmode="numeric"
+                        pattern="[0-9]{8}"
+                        title="Digite exatamente 8 números"
+                    >
+                </div>
+
+                <div class="input-group">
+                    <label for="confirm_password">
+                        <img 
+                            src="{{ url_for('static', filename='icons/login/old-big-key.png') }}"
+                            alt="Ícone de confirmar senha"
+                        >
+                    </label>
+
+                    <input 
+                        type="password" 
+                        id="confirm_password" 
+                        name="confirm_password" 
+                        placeholder="Confirmar senha"
+                        required 
+                        maxlength="8"
+                        inputmode="numeric"
+                        pattern="[0-9]{8}"
+                        title="Digite exatamente 8 números"
+                    >
+                </div>
+
+                <button type="submit" class="btn-login">
+                    Cadastrar
+                </button>
+
+                <a href="/" class="link-register">
+                    Já tem conta? Faça login
+                </a>
+
+            </form>
+        </section>
+
+        <article class="container-title">
+            <h2>Confiança para hoje. Prosperidade para o futuro.</h2>
+            <p class="tagline">Cadastre-se para começar sua jornada</p>
+        </article>
+
+    </div>
+</main>
+
+<script>
+document
+    .querySelectorAll('#password, #confirm_password')
+    .forEach(function (input) {
+
+        input.addEventListener('input', function () {
+            this.value = this.value.replace(/[^0-9]/g, '');
+        });
+
+        input.addEventListener('keypress', function (e) {
+            if (!/[0-9]/.test(String.fromCharCode(e.which))) {
+                e.preventDefault();
+            }
+        });
+
+    });
+
+// Manter estado focado mesmo após perder o foco
+const sectionLogin = document.querySelector('.section-login');
+const inputs = document.querySelectorAll('.form-login input');
+
+inputs.forEach(input => {
+    input.addEventListener('focus', () => {
+        sectionLogin.classList.add('focused');
+    });
+    
+    input.addEventListener('blur', () => {
+        // Verifica se algum outro input ainda tem foco
+        const hasFocus = Array.from(inputs).some(inp => inp === document.activeElement);
+        if (!hasFocus) {
+            sectionLogin.classList.remove('focused');
+        }
+    });
+});
+</script>
+
+<script src="{{ url_for('static', filename='js/maskcpf.js') }}"></script>
+
+{% include "components/popup.html" %}
+{% endblock %}

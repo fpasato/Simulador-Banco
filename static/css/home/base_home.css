@@ -1,0 +1,17 @@
+@import url('https://fonts.googleapis.com/css2?family=Comme:wght@100..900&family=Funnel+Display:wght@300..800&family=Varela+Round&display=swap');
+
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+
+
+  font-family: 'Comme', 'Funnel Display', 'Varela Round', sans-serif;
+  border: none;
+  
+}
+
+body {
+  background-color: aliceblue;
+}

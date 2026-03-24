@@ -1,0 +1,441 @@
+/* ===== VARIÁVEIS GLOBAIS (sobrescritas pelos temas) ===== */
+:root {
+  --transition-default: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --radius-card: 20px;
+  --radius-panel: 16px;
+  --radius-md: clamp(0.75rem, 2vw, 1rem);
+  --shadow-sm: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+  --shadow-md: 0 20px 25px -5px rgb(0 0 0 / 0.05), 0 8px 10px -6px rgb(0 0 0 / 0.05);
+}
+
+/* ===== TEMA CLARO (padrão) ===== */
+body.lighttheme {
+  --bg-body: #FEFAFE;
+  --bg-panel: #FFFFFF;
+  --accent: #4F46E5;
+  --accent-hover: #3429ff;
+  --text-main: #111827;
+  --text-muted: #6B7280;
+  --border-light: #6f69e0;
+  --border-medium: #5A4FE8;
+  --success: #22C55E;
+  --danger: #EF4444;
+  --danger-hover: #DC2626;
+  --primary-light: #EEF2FF;
+  --img-color: #6366F1;
+}
+
+/* ===== TEMA ESCURO ===== */
+body.darktheme {
+  --bg-body: #212121;
+  --bg-panel: #3c3c3c;
+  --accent: #4cecba;
+  --accent-hover: #4F46E5;
+  --text-main: #F9FAFB;
+  --text-muted: #7f62ff;
+  --border-light: #7f62ff;
+  --border-medium: #7f62ff;
+  --success: #58d5a1;
+  --danger: #EF4444;
+  --danger-hover: #F87171;
+  --primary-light: rgba(129, 140, 248, 0.15);
+  --img-color: brightness(0) invert(1);
+}
+
+/* ===== ESTILOS GLOBAIS ===== */
+.container {
+  width: 100%;
+  min-height: 100vh;
+  font-family: 'Inter', 'Segoe UI', sans-serif;
+  background-color: var(--bg-body);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 2rem;
+  transition: background-color 0.3s ease;
+}
+
+.header-transfer {
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+  margin-bottom: 1.8rem;
+}
+
+.header-transfer h1 {
+  color: var(--text-main);
+  font-weight: 700;
+}
+
+.transfer-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  background-color: var(--bg-panel);
+  padding: 2.5rem;
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-md);
+  max-width: 1000px;
+  gap: 2rem;
+  transition: background-color 0.3s ease;
+}
+
+/* Colunas */
+.box-origin-info,
+.box-destiny-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Saldo */
+.box-money-info {
+  background: linear-gradient(135deg, var(--bg-panel) 0%, var(--primary-light) 100%);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  padding: 1.5rem;
+}
+
+.box-money-info h3:first-child {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 0.5rem;
+}
+
+.box-money-info h3:last-of-type {
+  font-size: 2rem;
+  color: var(--text-main);
+  margin-bottom: 1.5rem;
+}
+
+/* Cartões Base */
+.box-account-info {
+  background-color: var(--bg-panel);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  padding: 1.5rem 1.5rem 2rem 1.5rem;
+}
+
+.box-account-info h3 {
+  font-size: 1.1rem;
+  margin-bottom: 1.2rem;
+  color: var(--accent);
+}
+
+.header-destiny {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.2rem;
+}
+
+.header-destiny h3 {
+  margin-bottom: 0;
+}
+
+/* Linhas de Informação */
+.info-row,
+.info-grid {
+  margin-bottom: 1rem;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.info-row p,
+.info-grid p {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.info-row span,
+.info-grid span {
+  font-size: 1rem;
+  color: var(--text-main);
+  font-weight: 600;
+  margin-top: 0.3rem;
+}
+
+/* Estado Vazio (Sem Destinatário) */
+.box-empty {
+  border: 2px dashed var(--border-light);
+  background-color: var(--bg-body);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  height: 100%;
+  color: var(--text-muted);
+  min-height: 300px;
+}
+
+.box-empty .empty-icon {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
+.box-empty .empty-icon img {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+  opacity: 0.5;
+  filter: var(--img-color);
+}
+
+.box-empty p {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.box-empty small {
+  font-size: 0.85rem;
+}
+
+/* Formulários & Inputs */
+.form-search label,
+.box-value-info label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-main);
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+input {
+  width: 100%;
+  padding: 0.8rem 1rem;
+  border: 1.5px solid var(--border-light);
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  transition: border-color 0.2s;
+  box-sizing: border-box;
+  font-family: inherit;
+  background-color: var(--bg-panel);
+  color: var(--text-main);
+}
+
+input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+/* Bloco de Valor da Transferência */
+.transfer-form-final {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.box-value-info {
+  background-color: var(--bg-panel);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  padding: 1.8rem;
+}
+
+.input-value-wrapper {
+  display: flex;
+  align-items: center;
+  position: relative;
+  margin-bottom: 1rem;
+}
+
+.input-value-wrapper span {
+  position: absolute;
+  left: 1rem;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.input-value-wrapper input {
+  padding-left: 2.5rem;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+/* Botões */
+.btn {
+  width: 100%;
+  background-color: var(--border-light);
+  color: var(--text-main);
+  border: none;
+  padding: 0.9rem;
+  margin-top: 1rem;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.1s;
+}
+
+.btn:hover {
+  filter: brightness(0.9);
+}
+
+.btn:active {
+  transform: scale(0.98);
+}
+
+.btn-transfer {
+  background-color: var(--success);
+}
+
+.btn-transfer:hover {
+  filter: brightness(0.9);
+}
+
+/* Badge de Status */
+.status-badge {
+  display: inline-block;
+  background-color: var(--primary-light);
+  color: var(--success);
+  padding: 0.3rem 0.8rem;
+  border-radius: 2rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+/* Remove as setas no Chrome, Safari, Edge e Opera */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Remove as setas no Firefox */
+input[type=number] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+.currency-input input {
+  text-align: left;
+  padding-right: 16px;
+  font-family: 'Inter', monospace;
+}
+
+/* ===== RESPONSIVIDADE ===== */
+
+/* Tablet (max-width: 768px) */
+@media (max-width: 768px) {
+  .container {
+    padding-top: 1rem;
+  }
+
+  .transfer-container {
+    grid-template-columns: 1fr;
+    padding: 1.5rem;
+    gap: 1.5rem;
+  }
+
+  .header-transfer h1 {
+    font-size: 1.8rem;
+  }
+
+  .box-money-info h3:last-of-type {
+    font-size: 1.6rem;
+  }
+
+  .box-account-info {
+    padding: 1.2rem;
+  }
+
+  .info-grid {
+    gap: 0.8rem;
+  }
+
+  .btn {
+    padding: 0.8rem;
+  }
+}
+
+/* Celular pequeno (max-width: 360px) */
+@media (max-width: 360px) {
+  .transfer-container {
+    padding: 1rem;
+  }
+
+  .header-transfer h1 {
+    font-size: 1.5rem;
+  }
+
+  .box-money-info {
+    padding: 1rem;
+  }
+
+  .box-money-info h3:last-of-type {
+    font-size: 1.3rem;
+  }
+
+  .box-account-info {
+    padding: 1rem;
+  }
+
+  .info-grid {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+
+  .info-row span,
+  .info-grid span {
+    font-size: 0.9rem;
+  }
+
+  .btn {
+    padding: 0.7rem;
+    font-size: 0.9rem;
+  }
+
+  .input-value-wrapper input {
+    font-size: 1rem;
+    padding-left: 2rem;
+  }
+
+  .input-value-wrapper span {
+    left: 0.8rem;
+    font-size: 0.9rem;
+  }
+}
+
+/* Ajuste para telas muito grandes (≥1400px) */
+@media (min-width: 1400px) {
+  .transfer-container {
+    max-width: 1200px;
+    padding: 3rem;
+    gap: 3rem;
+  }
+
+  .box-money-info {
+    padding: 2rem;
+  }
+
+  .box-money-info h3:last-of-type {
+    font-size: 2.5rem;
+  }
+
+  .box-account-info {
+    padding: 2rem;
+  }
+
+  .info-row span,
+  .info-grid span {
+    font-size: 1.1rem;
+  }
+
+  .btn {
+    padding: 1rem;
+    font-size: 1.1rem;
+  }
+
+  .input-value-wrapper input {
+    font-size: 1.4rem;
+  }
+}

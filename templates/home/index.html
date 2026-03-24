@@ -1,0 +1,70 @@
+<!-- templates/home.html -->
+{% extends "layouts/base_home.html" %}
+
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/home/style.css') }}">
+
+<main class="main-container">
+    <div class="container">
+        <header class="welcome-header">
+            <h1 class="welcome-title">Bem-vindo, <span>{{ session['user_info']['user_name'] }}</span></h1>
+            <p>Aqui está o resumo da sua conta.</p>
+        </header>
+
+        <div class="content">
+            <!-- Coluna de Ações -->
+            <div class="actions">
+                <section class="card-base principal-options">
+                    <h2>Ações rápidas</h2>
+                    <div class="grid-btns">
+                        <a href="/transfer"><img src="../../static/icons/home_icons/transferir.png" alt="Transferir">Transferir</a>
+                        <a href="/pix"><img src="../../static/icons/home_icons/pix.png" alt="PIX">PIX</a>
+                        <a href="/faturas"><img src="../../static/icons/home_icons/faturas.png" alt="Pagar">Pagar</a>
+                        <a href="/saldo"><img src="../../static/icons/home_icons/saldo.png" alt="Saldo">Saldo</a>
+                        <a href="/extrato"><img src="../../static/icons/home_icons/extrato.png" alt="Extrato">Extrato</a>
+                        <a href="/cards"><img src="../../static/icons/home_icons/cards.png" alt="Cartões">Cartões</a>
+                    </div>
+                </section>
+
+                <section class="card-base other-options">
+                    <h3>Mais serviços</h3>
+                    <div class="other-options-list">
+                        <a href="/investimento">Investimentos <span>→</span></a>
+                        <a href="/emprestimos">Empréstimos <span>→</span></a>
+                        <a href="#">Guardar dinheiro <span>→</span></a>
+                        <a href="/logout" class="logout-btn">Encerrar Sessão</a>
+                    </div>
+                </section>
+            </div>
+
+            <section class="card-base promo" aria-label="Promoções em destaque">
+                <div class="carousel-wrapper">
+                    <button class="nav-btn left" onclick="sideScroll('left')" aria-label="Anterior">‹</button>
+
+                    <div class="ads-grid" id="adsGrid">
+                        <img src="{{ url_for('static', filename='images/ad/ad1.png') }}" alt="Promo 1">
+                        <img src="{{ url_for('static', filename='images/ad/ad2.png') }}" alt="Promo 2">
+                        <img src="{{ url_for('static', filename='images/ad/ad3.png') }}" alt="Promo 3">
+
+                        <div class="video-container">
+                            <video id="adVideo" src="{{ url_for('static', filename='videos/ad6.mp4') }}" autoplay loop
+                                muted playsinline></video>
+                            <button class="sound-toggle" id="soundBtn" aria-label="Ativar som">🔇</button>
+                        </div>
+
+                        <img src="{{ url_for('static', filename='images/ad/ad4.png') }}" alt="Promo 4">
+                        <img src="{{ url_for('static', filename='images/ad/ad5.png') }}" alt="Promo 5">
+                        <img src="{{ url_for('static', filename='images/ad/ad6.png') }}" alt="Promo 6">
+                    </div>
+
+                    <button class="nav-btn right" onclick="sideScroll('right')" aria-label="Próximo">›</button>
+                    <div class="carousel-indicators" id="carouselIndicators" role="tablist"></div>
+                </div>
+            </section>
+        </div>
+    </div>
+</main>
+
+<script src="{{ url_for('static', filename='js/home.js') }}"></script>
+{% include "components/popup.html" %}
+{% endblock %}

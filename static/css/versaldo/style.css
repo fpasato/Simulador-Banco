@@ -1,0 +1,299 @@
+/* ==========================================================================
+   VER SALDO - TEMA INTEGRADO COM VARIÁVEIS GLOBAIS
+   ========================================================================== */
+
+/* ===== VARIÁVEIS GLOBAIS (sobrescritas pelos temas) ===== */
+:root {
+  --transition-default: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --radius-card: 20px;
+  --radius-panel: 16px;
+  --radius-md: clamp(0.75rem, 2vw, 1rem);
+  --shadow-sm: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+  --shadow-md: 0 20px 25px -5px rgb(0 0 0 / 0.05), 0 8px 10px -6px rgb(0 0 0 / 0.05);
+}
+
+/* ===== TEMA CLARO (padrão) ===== */
+body.lighttheme {
+  --bg-body: #FEFAFE;
+  --bg-panel: #FFFFFF;
+  --accent: #4F46E5;
+  --accent-hover: #3429ff;
+  --text-main: #111827;
+  --text-muted: #6B7280;
+  --border-light: #6f69e0;
+  --border-medium: #5A4FE8;
+  --success: #22C55E;
+  --danger: #EF4444;
+  --danger-hover: #DC2626;
+  --primary-light: #EEF2FF;
+  --img-color: #6366F1;
+  --shadow-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+/* ===== TEMA ESCURO ===== */
+body.darktheme {
+  --bg-body: #212121;
+  --bg-panel: #3c3c3c;
+  --accent: #4cecba;
+  --accent-hover: #4F46E5;
+  --text-main: #F9FAFB;
+  --text-muted: #7f62ff;
+  --border-light: #7f62ff;
+  --border-medium: #7f62ff;
+  --success: #58d5a1;
+  --danger: #EF4444;
+  --danger-hover: #F87171;
+  --primary-light: rgba(129, 140, 248, 0.15);
+  --img-color: brightness(0) invert(1);
+  --shadow-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+}
+
+/* ==========================================================================
+   1. CONFIGURAÇÕES GERAIS E TOKENS
+   ========================================================================== */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    background-color: var(--bg-body);
+    color: var(--text-main);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+main {
+    display: flex;
+    justify-content: center;
+    padding: 2rem 1rem;
+    min-height: 100vh;
+}
+
+.container {
+    width: 100%;
+    max-width: 1280px;
+    margin: 0 auto;
+}
+
+/* ==========================================================================
+   2. TIPOGRAFIA
+   ========================================================================== */
+h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 2rem;
+    color: var(--text-main);
+}
+
+h3 {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+    margin-bottom: 0.5rem;
+}
+
+h4 {
+    font-size: 1rem;
+    font-weight: 400;
+    color: var(--text-muted);
+    display: flex;
+    justify-content: space-between;
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--border-light);
+}
+
+h4 span {
+    font-weight: 600;
+    color: var(--text-main);
+}
+
+/* Destaque do Saldo */
+#saldo {
+    display: block;
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: -0.05em;
+    margin-bottom: 1rem;
+}
+
+/* ==========================================================================
+   3. CARDS E SUPERFÍCIES
+   ========================================================================== */
+.saldo-container {
+    background: var(--bg-panel);
+    padding: 2rem;
+    border-radius: var(--radius-md);
+    border: 2px solid var(--accent);
+    border-top: 20px solid var(--accent);
+    box-shadow: var(--shadow-sm);
+    transition: var(--transition-default);
+    max-width: 540px;
+    margin-bottom: 1.5rem;
+}
+
+.saldo-container:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-hover);
+    border-color: var(--accent);
+}
+
+/* ==========================================================================
+   4. BOTÕES
+   ========================================================================== */
+#btn-refresh {
+    background-color: var(--border-light);
+    color: #ffffff;
+    font-size: 1rem;
+    font-weight: 600;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: var(--transition-default);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#btn-refresh:hover {
+    background-color: var(--accent-hover);
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
+    transform: translateY(-1px);
+}
+
+#btn-refresh:active {
+    transform: scale(0.98);
+}
+
+/* ==========================================================================
+   5. UTILITÁRIOS DE ALERTA
+   ========================================================================== */
+.alert-box {
+    padding: 1rem;
+    border-radius: var(--radius-md);
+    margin-bottom: 1rem;
+    background: var(--bg-panel);
+    border-left: 4px solid var(--accent);
+    box-shadow: var(--shadow-sm);
+}
+
+.alert-success {
+    border-left-color: var(--success);
+}
+.alert-error {
+    border-left-color: var(--danger);
+}
+
+/* ==========================================================================
+   6. RESPONSIVIDADE
+   ========================================================================== */
+
+/* Tablet (max-width: 768px) */
+@media (max-width: 768px) {
+    main {
+        padding: 1.5rem 1rem;
+    }
+
+    h1 {
+        font-size: 1.75rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .saldo-container {
+        padding: 1.5rem;
+        max-width: 100%;
+    }
+
+    #saldo {
+        font-size: 2rem;
+    }
+
+    #btn-refresh {
+        width: 100%;
+        padding: 0.875rem;
+    }
+
+    h4 {
+        font-size: 0.9rem;
+    }
+}
+
+/* Celular pequeno (max-width: 360px) */
+@media (max-width: 360px) {
+    main {
+        padding: 1rem 0.75rem;
+    }
+
+    h1 {
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .saldo-container {
+        padding: 1rem;
+    }
+
+    #saldo {
+        font-size: 1.6rem;
+    }
+
+    h3 {
+        font-size: 0.75rem;
+    }
+
+    h4 {
+        font-size: 0.8rem;
+        padding: 0.75rem 0;
+    }
+
+    #btn-refresh {
+        padding: 0.7rem;
+        font-size: 0.9rem;
+    }
+}
+
+/* Ajuste para telas muito grandes (min-width: 1400px) */
+@media (min-width: 1400px) {
+    .container {
+        max-width: 1400px;
+    }
+
+    .saldo-container {
+        max-width: 640px;
+        padding: 2.5rem;
+    }
+
+    #saldo {
+        font-size: 3rem;
+    }
+
+    h1 {
+        font-size: 2.5rem;
+    }
+
+    h4 {
+        font-size: 1.1rem;
+    }
+
+    #btn-refresh {
+        padding: 1rem 2rem;
+        font-size: 1.1rem;
+    }
+}
+
+/* ==========================================================================
+   7. ACESSIBILIDADE E PREFERÊNCIAS DE MOVIMENTO
+   ========================================================================== */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        transition: none !important;
+        animation: none !important;
+    }
+}

@@ -1,0 +1,108 @@
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/emprego/style.css') }}">
+
+<main class="main-container">
+    <header class="intro-header">
+        <h1>Identidade Lumo</h1>
+        <p>Este formulário ajudará a identificar o ambiente de trabalho e a faixa salarial ideal para o seu perfil.</p>
+        <p>Responda de forma instintiva. Cada escolha define sua inclinação profissional.</p>
+        <p style="color: red;">*Não saia desta página durante o processo de escolha.</p>
+        <p style="color: red;">*É aqui onde você define seu salário ideal.</p>
+        <span class="badge-info">Pontuação baseada em escala de 1 a 3</span>
+    </header>
+
+    <form action="/escolher-emprego" method="post" class="pergunta-form"> 
+
+        <section class="question-block">
+            <h3 class="pergunta-title">1. Caminho iluminado</h3>
+            <p class="pergunta-text">Você está em um caminho escuro. O que faz?</p>
+            <div class="options-stack">
+                <label><input type="radio" name="q1" value="2" required> Anda explorando com cuidado</label>
+                <label><input type="radio" name="q1" value="3"> Segue pela luz mais segura</label>
+                <label><input type="radio" name="q1" value="1"> Vai direto sem pensar muito</label>
+                <label><input type="radio" name="q1" value="2"> Espera alguém aparecer antes de decidir</label>
+            </div>
+        </section>
+
+        <section class="question-block">
+            <h3 class="pergunta-title">2. Dinheiro inesperado</h3>
+            <p class="pergunta-text">Você recebe um valor inesperado. O que faz?</p>
+            <div class="options-stack">
+                <label><input type="radio" name="q2" value="2" required> Guarda para o futuro</label>
+                <label><input type="radio" name="q2" value="3"> Usa uma parte e guarda outra</label>
+                <label><input type="radio" name="q2" value="1"> Gasta com algo imediato</label>
+                <label><input type="radio" name="q2" value="2"> Fica indeciso e deixa parado por um tempo</label>
+            </div>
+        </section>
+
+        <section class="question-block">
+            <h3 class="pergunta-title">3. Decisão financeira</h3>
+            <p class="pergunta-text">Você precisa tomar uma decisão importante:</p>
+            <div class="options-stack">
+                <label><input type="radio" name="q3" value="2" required> Analisa antes de decidir</label>
+                <label><input type="radio" name="q3" value="1"> Decide rápido e assume o risco</label>
+                <label><input type="radio" name="q3" value="3"> Escolhe a opção mais segura</label>
+                <label><input type="radio" name="q3" value="2"> Pede opinião de outras pessoas</label>
+            </div>
+        </section>
+
+        <section class="question-block">
+            <h3 class="pergunta-title">4. Futuro</h3>
+            <p class="pergunta-text">Você pensa no seu futuro financeiro como:</p>
+            <div class="options-stack">
+                <label><input type="radio" name="q4" value="2" required> Algo que precisa ser construído com cuidado</label>
+                <label><input type="radio" name="q4" value="3"> Algo que vai evoluir com o tempo</label>
+                <label><input type="radio" name="q4" value="1"> Algo incerto que depende da sorte</label>
+                <label><input type="radio" name="q4" value="2"> Prefere não pensar muito nisso agora</label>
+            </div>
+        </section>
+
+        <section class="question-block">
+            <h3 class="pergunta-title">5. Imprevistos financeiros</h3>
+            <p class="pergunta-text">Quando surge um gasto inesperado, você geralmente:</p>
+            <div class="options-stack">
+                <label><input type="radio" name="q5" value="2" required> Ajusta o orçamento para conseguir pagar</label>
+                <label><input type="radio" name="q5" value="1"> Usa crédito ou dá um jeito depois</label>
+                <label><input type="radio" name="q5" value="3"> Já tem uma reserva e resolve sem preocupação</label>
+                <label><input type="radio" name="q5" value="2"> Analisa a situação antes de decidir o que fazer</label>
+            </div>
+        </section>
+
+        <section class="question-block">
+            <h3 class="pergunta-title">6. O propósito do Lumo</h3>
+            <p class="pergunta-text">O que mais faz sentido para você?</p>
+            <div class="options-stack">
+                <label><input type="radio" name="q6" value="2" required> Crescer aproveitando oportunidades</label>
+                <label><input type="radio" name="q6" value="1"> Buscar ganhos rápidos</label>
+                <label><input type="radio" name="q6" value="2"> Buscar o melhor caminho de acordo com cada situação</label>
+                <label><input type="radio" name="q6" value="3"> Segurança e crescimento consistente</label>
+            </div>
+        </section>
+
+        <button type="submit">Finalizar e Ver Perfil</button>
+    </form>
+</main>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const labels = document.querySelectorAll('label');
+    
+    labels.forEach(label => {
+        const input = label.querySelector('input');
+        
+        // Listener inicial para casos onde o navegador lembra a seleção (autocomplete)
+        if (input.checked) label.classList.add('checked');
+
+        input.addEventListener('change', function() {
+            // Pegamos o grupo de opções desta pergunta específica
+            const group = this.closest('.options-stack');
+            group.querySelectorAll('label').forEach(l => l.classList.remove('checked'));
+            
+            if (this.checked) {
+                label.classList.add('checked');
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

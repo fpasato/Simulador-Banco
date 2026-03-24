@@ -1,0 +1,186 @@
+{% extends 'layouts/base_home.html' %}
+
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/cards/style.css') }}">
+
+<main class="cards-container">
+    <header class="cards-header">
+        <h1>Meus Cartões</h1>
+        <p>Gerencie seus limites e cartões virtuais.</p>
+    </header>
+
+    <section class="cards-display">
+
+        {% if cartao_debito %}
+        <article class="bank-card debit-card">
+            <div class="card-glass"></div>
+
+            <div class="card-content">
+                <div class="card-top">
+                    <span class="card-type">Cartão digital de débito</span>
+
+                    <img src="{{ url_for('static', filename='icons/lumo-icon.png') }}" class="bank-logo reveal-btn"
+                        onclick="toggleCard(this)">
+                </div>
+
+                <div class="card-number" data-full="{{ cartao_debito.numero_cartao }}">
+                    {{ cartao_debito.numero_formatado }}
+                </div>
+
+                <div class="card-bottom">
+                    <div class="info-group">
+                        <label>Titular</label>
+                        <span>{{ titular }}</span>
+                    </div>
+
+                    <div class="info-group">
+                        <label>Validade</label>
+                        <span>{{ cartao_debito.validade }}</span>
+                    </div>
+
+                    <div class="info-group">
+                        <label>CVV</label>
+                        <span class="card-cvv" data-full="{{ cartao_debito.cvv }}">
+                            ***
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </article>
+        {% else %}
+        <form action="/cards/createcards" method="POST" class="card-form">
+            <input type="hidden" name="tipo" value="debito">
+            <button type="submit" class="bank-card empty-card-slot">
+                <div class="card-content-empty">
+                    <i class="fas fa-plus-circle"></i>
+                    <span>Ativar Cartão Digital de Débito</span>
+                </div>
+            </button>
+        </form>
+        {% endif %}
+
+        {% if cartao_credito %}
+        <article class="bank-card credit-card">
+            <div class="card-glass"></div>
+
+            <div class="card-content">
+                <div class="card-top">
+                    <span class="card-type">Cartão digital de crédito</span>
+
+                    <img src="{{ url_for('static', filename='icons/lumo-icon.png') }}" class="bank-logo reveal-btn"
+                        onclick="toggleCard(this)">
+                </div>
+
+                <div class="card-number" data-full="{{ cartao_credito.numero_cartao }}">
+                    {{ cartao_credito.numero_formatado }}
+                </div>
+
+                <div class="card-bottom">
+                    <div class="info-group">
+                        <label>Titular</label>
+                        <span>{{ titular }}</span>
+                    </div>
+
+                    <div class="info-group">
+                        <label>Validade</label>
+                        <span>{{ cartao_credito.validade }}</span>
+                    </div>
+
+                    <div class="info-group">
+                        <label>CVV</label>
+                        <span class="card-cvv" data-full="{{ cartao_credito.cvv }}">
+                            ***
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </article>
+        {% else %}
+        <form action="/cards/createcards" method="POST" class="card-form">
+            <input type="hidden" name="tipo" value="credito">
+            <button type="submit" class="bank-card empty-card-slot">
+                <div class="card-content-empty">
+                    <i class="fas fa-plus-circle"></i>
+                    <span>Solicitar Cartão Digital de Crédito</span>
+                </div>
+            </button>
+        </form>
+        {% endif %}
+
+    </section>
+
+    <section class="cards-grid">
+        <div class="panel">
+            <h3>Gerenciar</h3>
+            <div class="action-buttons">
+                <button class="action-item"><i class="fas fa-lock"></i> Bloquear</button>
+                <button class="action-item"><i class="fas fa-sliders-h"></i> Limites</button>
+                <button class="action-item"><i class="fas fa-redo"></i> 2ª Via</button>
+                <button class="action-item primary"><i class="fas fa-shield-alt"></i> Seguros</button>
+            </div>
+            <hr>
+            <h3>Segurança</h3>
+            <div class="security-toggles">
+                <label class="toggle-item">
+                    <span>Compras Online</span>
+                    <input type="checkbox" {{ 'checked' if cartao_credito else 'disabled' }}>
+                </label>
+                <label class="toggle-item">
+                    <span>Uso Internacional</span>
+                    <input type="checkbox" {{ 'checked' if cartao_credito else 'disabled' }}>
+                </label>
+            </div>
+        </div>
+
+        <div class="panel invoice-panel {{ 'empty-state' if not cartao_credito }}">
+            {% if cartao_credito %}
+            <div class="invoice-header">
+                <h3>Fatura Atual</h3>
+                <span class="invoice-badge">Vence em 15 Out</span>
+            </div>
+            <div class="invoice-amount">R$ {{ fatura.valor }}</div>
+            <div class="limit-bar">
+                <div class="limit-used" style="width: {{ fatura.percentual }}%"></div>
+            </div>
+            <p class="limit-info">Disponível: <strong>R$ {{ fatura.disponivel }}</strong></p>
+            <button class="btn-pay">Pagar Fatura</button>
+            {% else %}
+            <p>Nenhuma fatura ativa. <br> Crie um cartão para ver detalhes.</p>
+            {% endif %}
+        </div>
+    </section>
+</main>
+
+<script>
+    function toggleCard(el) {
+        const card = el.closest(".bank-card");
+
+        const numberEl = card.querySelector(".card-number");
+        const cvvEl = card.querySelector(".card-cvv");
+
+        const fullNumber = numberEl.dataset.full;
+        const fullCvv = cvvEl?.dataset.full;
+
+        if (!fullNumber) return;
+
+        const isHidden = numberEl.innerText.includes("*");
+
+        function formatNumber(num) {
+            return num.replace(/(\d{4})(\d{4})(\d{3})/, "$1 $2 $3");
+        }
+
+        // 🔥 usa 3 dígitos agora
+        const lastDigits = fullNumber.slice(-3);
+
+        numberEl.innerText = isHidden
+            ? formatNumber(fullNumber)
+            : "**** **** " + lastDigits;
+
+        if (cvvEl && fullCvv) {
+            cvvEl.innerText = isHidden ? fullCvv : "***";
+        }
+    }
+</script>
+
+{% include "components/popup.html" %}
+{% endblock %}

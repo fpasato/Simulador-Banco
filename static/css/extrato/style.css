@@ -1,0 +1,319 @@
+/* ==========================================================================
+   EXTRATO - TEMA INTEGRADO COM VARIÁVEIS GLOBAIS
+   ========================================================================== */
+
+/* ===== VARIÁVEIS GLOBAIS (sobrescritas pelos temas) ===== */
+:root {
+  --transition-default: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --radius-card: 20px;
+  --radius-panel: 16px;
+  --radius-md: clamp(0.75rem, 2vw, 1rem);
+  --shadow-sm: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+  --shadow-md: 0 20px 25px -5px rgb(0 0 0 / 0.05), 0 8px 10px -6px rgb(0 0 0 / 0.05);
+}
+
+/* ===== TEMA CLARO (padrão) ===== */
+body.lighttheme {
+  --bg-body: #FEFAFE;
+  --bg-panel: #FFFFFF;
+  --accent: #4F46E5;
+  --accent-hover: #3429ff;
+  --text-main: #111827;
+  --text-muted: #6B7280;
+  --border-light: #6f69e0;
+  --border-medium: #5A4FE8;
+  --success: #22C55E;
+  --danger: #EF4444;
+  --danger-hover: #DC2626;
+  --primary-light: #EEF2FF;
+  --img-color: #6366F1;
+  --table-header-bg: #1e293b;     /* cabeçalho escuro no tema claro */
+  --table-header-text: #ffffff;
+  --table-stripe-odd: rgba(0, 0, 0, 0.02);
+  --table-stripe-even: rgba(0, 0, 0, 0.04);
+  --badge-success-bg: #dcfce7;
+  --badge-success-text: #166534;
+  --badge-danger-bg: #fee2e2;
+  --badge-danger-text: #991b1b;
+  --badge-info-bg: #dbeafe;
+  --badge-info-text: #1e40af;
+}
+
+/* ===== TEMA ESCURO ===== */
+body.darktheme {
+  --bg-body: #212121;
+  --bg-panel: #3c3c3c;
+  --accent: #4cecba;
+  --accent-hover: #4F46E5;
+  --text-main: #F9FAFB;
+  --text-muted: #7f62ff;
+  --border-light: #7f62ff;
+  --border-medium: #7f62ff;
+  --success: #58d5a1;
+  --danger: #EF4444;
+  --danger-hover: #F87171;
+  --primary-light: rgba(129, 140, 248, 0.15);
+  --img-color: brightness(0) invert(1);
+  --table-header-bg: #2d2d2d;
+  --table-header-text: #f9fafb;
+  --table-stripe-odd: rgba(255, 255, 255, 0.03);
+  --table-stripe-even: rgba(255, 255, 255, 0.06);
+  --badge-success-bg: rgba(88, 213, 161, 0.2);
+  --badge-success-text: #58d5a1;
+  --badge-danger-bg: rgba(239, 68, 68, 0.2);
+  --badge-danger-text: #f87171;
+  --badge-info-bg: rgba(129, 140, 248, 0.2);
+  --badge-info-text: #818cf8;
+}
+
+/* ==========================================================================
+   1. RESET E BASE
+   ========================================================================== */
+/* ==========================================================================
+   1. RESET E BASE
+   ========================================================================== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  height: 100%;
+}
+
+body {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--bg-body);
+  margin: 0;
+  padding: 0;
+}
+
+main {
+  flex: 1;
+  width: 100%;
+  max-width: 1400px;
+  margin: 2rem auto;
+  padding: 0 1.5rem;
+}
+
+/* ==========================================================================
+   3. TÍTULO
+   ========================================================================== */
+h1 {
+  font-size: clamp(1.5rem, 4vw, 2rem);
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  color: var(--text-main);
+}
+
+/* ==========================================================================
+   4. CONTAINER DA TABELA (CARD)
+   ========================================================================== */
+.table-responsive {
+  background: var(--bg-panel);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-md);
+  overflow-x: auto;
+  border: 1px solid var(--border-light);
+  transition: var(--transition-default);
+}
+
+.table-responsive:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+/* ==========================================================================
+   5. TABELA
+   ========================================================================== */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+  min-width: 600px;
+}
+
+/* Cabeçalho */
+.table thead th {
+  background: var(--table-header-bg) !important;
+  color: var(--table-header-text) !important;
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 1rem;
+  border: none !important;
+  white-space: nowrap;
+}
+
+/* Células */
+.table tbody td {
+  padding: 1rem;
+  border-bottom: 1px solid var(--border-light);
+  vertical-align: middle;
+  color: var(--text-main);
+  transition: background-color 0.2s ease;
+}
+
+/* Zebra com contraste baseado no tema */
+.table tbody tr:nth-child(odd) td {
+  background-color: var(--table-stripe-odd) !important;
+}
+.table tbody tr:nth-child(even) td {
+  background-color: var(--table-stripe-even) !important;
+}
+
+/* Hover suave */
+.table tbody tr:hover td {
+  background-color: var(--primary-light) !important;
+  cursor: default;
+}
+
+/* Remove borda da última linha */
+.table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* ==========================================================================
+   6. ESTILOS DE VALORES (DEPÓSITO/DÉBITO)
+   ========================================================================== */
+.text-success {
+  color: var(--success) !important;
+  font-weight: 600;
+}
+.text-danger {
+  color: var(--danger) !important;
+  font-weight: 600;
+}
+
+/* ==========================================================================
+   7. BADGES (TIPO DE TRANSAÇÃO)
+   ========================================================================== */
+.badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.bg-success {
+  background: var(--badge-success-bg) !important;
+  color: var(--badge-success-text) !important;
+}
+.bg-danger {
+  background: var(--badge-danger-bg) !important;
+  color: var(--badge-danger-text) !important;
+}
+.bg-info {
+  background: var(--badge-info-bg) !important;
+  color: var(--badge-info-text) !important;
+}
+
+/* ==========================================================================
+   8. ALERTA (QUANDO NÃO HÁ TRANSAÇÕES)
+   ========================================================================== */
+.alert-warning {
+  background: var(--primary-light);
+  color: var(--text-muted);
+  padding: 2rem;
+  border-radius: var(--radius-md);
+  text-align: center;
+  font-weight: 500;
+  border: 1px solid var(--border-light);
+}
+
+/* ==========================================================================
+   9. RESPONSIVIDADE
+   ========================================================================== */
+
+/* Tablet (max-width: 768px) */
+@media (max-width: 768px) {
+  main {
+    margin: 1rem auto;
+    padding: 0 1rem;
+  }
+
+  h1 {
+    margin-bottom: 1rem;
+  }
+
+  .table {
+    font-size: 0.85rem;
+    min-width: 550px;
+  }
+
+  .table thead th,
+  .table tbody td {
+    padding: 0.75rem;
+  }
+
+  .badge {
+    font-size: 0.65rem;
+    padding: 0.2rem 0.6rem;
+  }
+}
+
+/* Celular pequeno (max-width: 360px) */
+@media (max-width: 360px) {
+  main {
+    padding: 0 0.75rem;
+  }
+
+  .table {
+    font-size: 0.75rem;
+    min-width: 500px;
+  }
+
+  .table thead th,
+  .table tbody td {
+    padding: 0.5rem;
+  }
+
+  .badge {
+    font-size: 0.6rem;
+    padding: 0.15rem 0.5rem;
+  }
+
+  .alert-warning {
+    padding: 1rem;
+    font-size: 0.85rem;
+  }
+}
+
+/* Ajuste para telas muito grandes (min-width: 1400px) */
+@media (min-width: 1400px) {
+  main {
+    max-width: 1400px;
+    padding: 0 2rem;
+  }
+
+  .table {
+    font-size: 1rem;
+  }
+
+  .table thead th,
+  .table tbody td {
+    padding: 1.25rem;
+  }
+
+  .badge {
+    font-size: 0.75rem;
+    padding: 0.35rem 1rem;
+  }
+}
+
+/* ==========================================================================
+   10. ACESSIBILIDADE
+   ========================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+    animation: none !important;
+  }
+}
