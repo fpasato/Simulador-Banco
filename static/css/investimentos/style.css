@@ -1,8 +1,8 @@
 /* ==========================================================================
-   INVESTIMENTOS - TEMA INTEGRADO COM VARIÁVEIS GLOBAIS
+   INVESTIMENTOS - TEMA INTEGRADO COM VARIÁVEIS GLOBAIS (REFATORADO)
    ========================================================================== */
 
-/* ===== VARIÁVEIS GLOBAIS (sobrescritas pelos temas) ===== */
+/* ----- VARIÁVEIS ----- */
 :root {
   --transition-default: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   --radius-card: 20px;
@@ -12,53 +12,54 @@
   --shadow-md: 0 20px 25px -5px rgb(0 0 0 / 0.05), 0 8px 10px -6px rgb(0 0 0 / 0.05);
 }
 
-/* ===== TEMA CLARO (padrão) ===== */
+/* ----- TEMA CLARO ----- */
 body.lighttheme {
-  --bg-body: #FEFAFE;
-  --bg-panel: #FFFFFF;
-  --accent: #4F46E5;
+  --bg-body: #fefafe;
+  --bg-panel: #ffffff;
+  --accent: #4f46e5;
   --accent-hover: #3429ff;
   --text-main: #111827;
-  --text-muted: #6B7280;
+  --text-muted: #6b7280;
   --border-light: #6f69e0;
-  --border-medium: #5A4FE8;
-  --success: #22C55E;
-  --danger: #EF4444;
-  --danger-hover: #DC2626;
-  --primary-light: #EEF2FF;
-  --img-color: #6366F1;
-  /* variáveis extras para investimentos */
+  --border-medium: #5a4fe8;
+  --success: #22c55e;
+  --danger: #ef4444;
+  --danger-hover: #dc2626;
+  --primary-light: #eef2ff;
+  --img-color: #6366f1;
   --balance-gradient-start: #0f172a;
   --balance-gradient-end: #1e293b;
-  --card-hover-border: #4F46E5;
-  --positive-color: #22C55E;
-  --negative-color: #EF4444;
+  --card-hover-border: #4f46e5;
+  --positive-color: #22c55e;
+  --negative-color: #ef4444;
 }
 
-/* ===== TEMA ESCURO ===== */
+/* ----- TEMA ESCURO ----- */
 body.darktheme {
   --bg-body: #212121;
   --bg-panel: #3c3c3c;
   --accent: #4cecba;
-  --accent-hover: #4F46E5;
-  --text-main: #F9FAFB;
+  --accent-hover: #4f46e5;
+  --text-main: #f9fafb;
   --text-muted: #7f62ff;
   --border-light: #7f62ff;
   --border-medium: #7f62ff;
   --success: #58d5a1;
-  --danger: #EF4444;
-  --danger-hover: #F87171;
+  --danger: #ef4444;
+  --danger-hover: #f87171;
   --primary-light: rgba(129, 140, 248, 0.15);
   --img-color: brightness(0) invert(1);
   --balance-gradient-start: #0f172a;
   --balance-gradient-end: #1e293b;
   --card-hover-border: #4cecba;
   --positive-color: #58d5a1;
-  --negative-color: #F87171;
+  --negative-color: #f87171;
 }
 
-/* ===== RESET & BASE ===== */
-*, *::before, *::after {
+/* ----- RESET & BASE ----- */
+*,
+*::before,
+*::after {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
@@ -67,21 +68,16 @@ body.darktheme {
 body {
   background-color: var(--bg-body);
   color: var(--text-main);
-  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   transition: background-color 0.3s ease, color 0.3s ease;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  margin: 0;
-  padding: 0;
 }
 
 .invest-wrapper {
   padding: 2rem 1rem;
-  flex: 1;
+  min-height: calc(100vh - 80px);
 }
 
 .app-container {
@@ -90,10 +86,10 @@ body {
   width: 100%;
 }
 
-/* ===== HEADER & BALANCE ===== */
+/* ----- HEADER & BALANCE ----- */
 .balance-card {
   background: linear-gradient(135deg, var(--balance-gradient-start) 0%, var(--balance-gradient-end) 100%);
-  color: #ffffff;
+  color: #fff;
   padding: 2.5rem;
   border-radius: var(--radius-card);
   margin-bottom: 2rem;
@@ -104,7 +100,7 @@ body {
 }
 
 .balance-card::after {
-  content: '';
+  content: "";
   position: absolute;
   top: -30%;
   right: -10%;
@@ -128,14 +124,14 @@ body {
 
 .balance-card h2 {
   font-size: clamp(2rem, 5vw, 3rem);
-  color: #ffffff;
+  color: #fff;
   margin-top: 0.5rem;
   font-weight: 800;
   letter-spacing: -0.02em;
   line-height: 1.2;
 }
 
-/* ===== TABS NAVIGATION ===== */
+/* ----- TABS ----- */
 .tabs-wrapper {
   margin-top: 1rem;
 }
@@ -173,7 +169,6 @@ body {
   box-shadow: var(--shadow-sm);
 }
 
-/* Conteúdo das tabs */
 .tab-pane {
   display: none;
   animation: fadeIn 0.3s ease;
@@ -195,7 +190,7 @@ body {
   }
 }
 
-/* ===== CARTEIRA (Lista de Investimentos) ===== */
+/* ----- CARTEIRA (Lista de Investimentos) ----- */
 .investimentos-lista {
   display: flex;
   flex-direction: column;
@@ -247,14 +242,53 @@ body {
 .card-lucro {
   font-weight: 600;
 }
+
 .card-lucro.positive {
   color: var(--positive-color);
 }
+
 .card-lucro.negative {
   color: var(--negative-color);
 }
 
-/* ===== EXPLORAR (Grid de Ativos) ===== */
+/* ----- EXPLORAR (Agrupamento) ----- */
+.tipo-section {
+  margin-bottom: 3rem;
+  background: var(--bg-body);
+  border-radius: var(--radius-card);
+  padding: 1.5rem;
+  transition: all 0.2s ease;
+}
+
+.tipo-title {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--accent);
+  margin: 0 0 0.5rem 0;
+  text-transform: capitalize;
+  border-bottom: 3px solid var(--accent);
+  display: inline-block;
+  padding-bottom: 0.25rem;
+}
+
+.setor-block {
+  margin-top: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.setor-title {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: var(--text-main);
+  background: var(--primary-light);
+  display: inline-block;
+  padding: 0.3rem 1rem;
+  border-radius: 40px;
+  margin-bottom: 1rem;
+  border-left: 4px solid var(--accent);
+}
+
+/* ----- GRID DE ATIVOS ----- */
 .ativos-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -264,17 +298,17 @@ body {
 .ativo-card {
   background: var(--bg-panel);
   border-radius: var(--radius-md);
-  padding: 1.5rem;
-  text-align: center;
+  padding: 1.2rem;
   transition: var(--transition-default);
   border: 1px solid var(--border-light);
   cursor: pointer;
   position: relative;
   overflow: hidden;
+  box-shadow: var(--shadow-sm);
 }
 
 .ativo-card::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
@@ -287,7 +321,7 @@ body {
 }
 
 .ativo-card:hover {
-  transform: translateY(-6px);
+  transform: translateY(-4px);
   box-shadow: var(--shadow-md);
   border-color: var(--accent);
 }
@@ -297,20 +331,32 @@ body {
 }
 
 .ativo-card h3 {
+  font-size: 1.2rem;
+  font-weight: 700;
   color: var(--text-main);
   margin-bottom: 0.5rem;
-  font-size: 1.25rem;
-  font-weight: 700;
+  line-height: 1.3;
+}
+
+.ativo-card span {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  display: inline-block;
+  background: var(--bg-body);
+  padding: 0.2rem 0.6rem;
+  border-radius: 20px;
+  margin-top: 0.25rem;
 }
 
 .ativo-preco {
+  font-size: 1.3rem;
   font-weight: 800;
   color: var(--accent);
-  font-size: 1.25rem;
-  margin-top: 0.75rem;
+  margin-top: 0.8rem;
+  margin-bottom: 0;
 }
 
-/* ===== BOTÕES ===== */
+/* ----- BOTÕES ----- */
 .btn {
   border: none;
   padding: 0.75rem 1.5rem;
@@ -328,7 +374,7 @@ body {
 
 .btn-primary {
   background: var(--accent);
-  color: #ffffff;
+  color: #fff;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
@@ -360,7 +406,7 @@ body {
 
 .btn-sell {
   background: var(--danger);
-  color: #ffffff;
+  color: #fff;
   font-weight: 600;
   font-size: 0.8rem;
   padding: 0.4rem 0.8rem;
@@ -381,7 +427,7 @@ body {
   opacity: 0.6;
 }
 
-/* ===== MODAL GLASSMORPHISM ===== */
+/* ----- MODAL ----- */
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -473,7 +519,6 @@ body {
   margin: 0.75rem 0;
 }
 
-/* Formulários no modal */
 .form-input {
   background: var(--bg-body);
   border: 2px solid transparent;
@@ -484,7 +529,6 @@ body {
   transition: var(--transition-default);
   width: 100%;
   color: var(--text-main);
-
 }
 
 .form-input:focus {
@@ -494,15 +538,14 @@ body {
   box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
 }
 
+.form-input[type="number"] {
+  -moz-appearance: textfield;
+}
+
 .form-input::-webkit-outer-spin-button,
 .form-input::-webkit-inner-spin-button {
   -webkit-appearance: none;
   margin: 0;
-}
-
-/* Firefox */
-.form-input[type="number"] {
-  -moz-appearance: textfield;
 }
 
 hr {
@@ -511,16 +554,13 @@ hr {
   margin: 1.5rem 0;
 }
 
-/* Gráfico no modal */
 .modal-right canvas {
   width: 100%;
   height: auto;
   max-height: 300px;
 }
 
-/* ===== RESPONSIVIDADE ===== */
-
-/* Tablet (max-width: 768px) */
+/* ----- RESPONSIVIDADE ----- */
 @media (max-width: 768px) {
   .invest-wrapper {
     padding: 1rem;
@@ -564,15 +604,9 @@ hr {
   }
 }
 
-/* Celular pequeno (max-width: 360px) */
 @media (max-width: 360px) {
   .invest-wrapper {
     padding: 0.75rem;
-  }
-
-  .ativos-grid {
-    grid-template-columns: 1fr;
-    gap: 1rem;
   }
 
   .modal-price {
@@ -596,7 +630,6 @@ hr {
   }
 }
 
-/* Ajuste para telas muito grandes (min-width: 1400px) */
 @media (min-width: 1400px) {
   .app-container {
     max-width: 1400px;
@@ -621,7 +654,7 @@ hr {
   }
 }
 
-/* ===== UTILITÁRIOS E ESTADOS ===== */
+/* ----- UTILITÁRIOS & ESTADOS ----- */
 .empty-state {
   text-align: center;
   padding: 3rem 1.5rem;
@@ -636,7 +669,6 @@ hr {
   margin-bottom: 0.5rem;
 }
 
-/* Acessibilidade: foco visível */
 button:focus-visible,
 .btn:focus-visible,
 .tab-label:focus-visible,
@@ -646,7 +678,6 @@ button:focus-visible,
   outline-offset: 2px;
 }
 
-/* Scrollbar personalizada (opcional) */
 .modal-card::-webkit-scrollbar {
   width: 6px;
 }

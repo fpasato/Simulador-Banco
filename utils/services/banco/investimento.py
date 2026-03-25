@@ -3,6 +3,7 @@ import random
 import sqlite3
 from utils.validators import get_db
 from threading import Lock
+import math 
 
 notificacoes_pendentes = {}
 notificacoes_lock = Lock()
@@ -12,16 +13,7 @@ import time
 def carregar_carteira(conta_id):
     conn = get_db()
     conn.row_factory = sqlite3.Row
-    
-    # 🔥 TESTE DEFINITIVO - Verificar estrutura
-    tabelas = conn.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()
-    print("=== TABELAS DO BANCO ===")
-    print(tabelas)
-    
-    colunas = conn.execute("PRAGMA table_info(investimentos_temporarios)").fetchall()
-    print("=== COLUNAS DE investimentos_temporarios ===")
-    print(colunas)
-    
+
     agora = int(time.time() * 1000)  # ms
     
     temporarios = conn.execute("""
@@ -81,7 +73,7 @@ def load_all_investiments():
     conn = get_db()
     conn.row_factory = sqlite3.Row
     investimentos = conn.execute("""
-        SELECT id, nome, descricao, valor_cota, risco, ativo
+        SELECT id, nome, descricao, valor_cota, risco, ativo, tipo, setor
         FROM investimentos
         WHERE ativo = 1
     """).fetchall()
@@ -168,82 +160,103 @@ from utils.validators import get_db
 # Lock para evitar concorrência na atualização de ativos
 _atualizar_lock = threading.Lock()
 
+
+def remover_ativo_para_todos(ativo_id, conn):
+    """Remove um ativo da carteira de todos os usuários (temporários e permanentes) sem desativá-lo."""
+    # 1. Remove da carteira permanente
+    conn.execute("DELETE FROM carteira_investimentos WHERE investimento_id = ?", (ativo_id,))
+    # 2. Remove dos investimentos temporários (se existir)
+    conn.execute("DELETE FROM investimentos_temporarios WHERE investimento_id = ?", (ativo_id,))
+    # NÃO desativar o ativo – comentar ou remover a linha abaixo:
+    # conn.execute("UPDATE investimentos SET ativo = 0 WHERE id = ?", (ativo_id,))
+    # Opcional: registrar notificações para os usuários afetados
+    # (Para simplificar, omitiremos notificações aqui)
+
+
 def atualizar_ativos():
-    with _atualizar_lock:  # garante que apenas uma instância execute por vez
+    with _atualizar_lock:
         conn = get_db()
         conn.row_factory = sqlite3.Row
-
-        # Busca os ativos ativos
-        ativos = conn.execute("""
-            SELECT id, valor_cota, risco, preco_base
-            FROM investimentos
-            WHERE ativo = 1
-        """).fetchall()
-
-        for ativo in ativos:
-            valor = ativo["valor_cota"]
-            preco_base = ativo["preco_base"]
-            risco = ativo["risco"]
-
-            # Parâmetros de volatilidade e tendência por risco
-            if risco == "baixo":
-                volatilidade = 0.001      # 0,1% por atualização
-                tendencia_anual = 0.03    # 3% ao ano
-            elif risco == "medio":
-                volatilidade = 0.002
-                tendencia_anual = 0.0
-            else:  # alto
-                volatilidade = 0.004
-                tendencia_anual = -0.01   # -1% ao ano
-
-            # Conversão de tendência anual para o intervalo (30 segundos)
-            intervalo_horas = 30 / 3600
-            drift = tendencia_anual * (intervalo_horas / 8760)  # 8760 horas/ano
-
-            ruido = random.gauss(0, volatilidade)
-            reversao = (preco_base - valor) * 0.0003
-
-            variacao = drift + ruido + reversao
-            novo_valor = round(valor * (1 + variacao), 2)
-
-            if novo_valor <= 1:
-                print(f"Ativo {ativo['id']} atingiu R$1 - removendo da carteira sem reembolso")
-                novo_valor = 1
-                remover_ativo_para_todos(ativo["id"], conn)   # função auxiliar
-
-            # Atualiza preço do ativo
-            conn.execute("UPDATE investimentos SET valor_cota = ? WHERE id = ?", (novo_valor, ativo["id"]))
-
-            # Insere histórico – usando a coluna data
-            conn.execute("""
-                INSERT INTO historico_precos (investimento_id, preco, data)
-                VALUES (?, ?, ?)
-            """, (ativo["id"], novo_valor, datetime.now().isoformat()))
-
-        # Limpa histórico antigo: mantém apenas os últimos 100 registros por ativo
-        for ativo in ativos:
-            keep_ids = conn.execute("""
-                SELECT id FROM historico_precos
-                WHERE investimento_id = ?
-                ORDER BY data DESC
-                LIMIT 100
-            """, (ativo["id"],)).fetchall()
-            keep_ids = [row[0] for row in keep_ids]
-            if keep_ids:
-                placeholders = ','.join('?' for _ in keep_ids)
-                conn.execute(f"""
-                    DELETE FROM historico_precos
-                    WHERE investimento_id = ? AND id NOT IN ({placeholders})
-                """, (ativo["id"], *keep_ids))
-
-        # Atualiza timestamp da última atualização (se a coluna existir)
         try:
-            conn.execute("UPDATE investimentos SET ultimo_update = ?", (datetime.now().isoformat(),))
-        except sqlite3.OperationalError:
-            pass  # coluna não existe, ignora
+            ativos = conn.execute("SELECT id, valor_cota, risco, preco_base FROM investimentos WHERE ativo = 1").fetchall()
 
-        conn.commit()
-        conn.close()
+            for ativo in ativos:
+                valor = ativo["valor_cota"]
+                preco_base = ativo["preco_base"]
+                risco = ativo["risco"]
+
+                # 1. Volatilidade anualizada (em percentual)
+                if risco == "baixo":
+                    volatilidade_anual = 0.03   # 3% ao ano
+                elif risco == "medio":
+                    volatilidade_anual = 0.15   # 15% ao ano
+                else:  # alto
+                    volatilidade_anual = 0.50   # 50% ao ano (realista para cripto)
+
+                # 2. Conversão para o intervalo (30 segundos)
+                intervalo_anos = 30 / (365 * 24 * 3600)  # 30 segundos em anos
+                volatilidade_intervalo = volatilidade_anual * (intervalo_anos ** 0.5)
+
+                # Ruído log-normal
+                ruido = random.gauss(0, volatilidade_intervalo)
+
+                # 3. Reversão à média com força controlável (ajuste conforme desejar)
+                forca_reversao = 0.0015   # força de correção (ajustável)
+                reversao = (preco_base - valor) * forca_reversao
+
+                # 4. Variação total (em log)
+                variacao_log = ruido + (reversao / valor)   # reversão relativa ao preço atual
+                novo_valor = valor * math.exp(variacao_log)
+
+                # 5. Piso dinâmico baseado no preço base (nunca cai abaixo de 20% do base)
+                preco_minimo = preco_base * 0.2
+                if novo_valor < preco_minimo:
+                    novo_valor = preco_minimo
+
+                # 6. Evento extremo (raro) – remove o ativo das carteiras apenas se colapsar abaixo de 10% do base
+                if novo_valor < preco_base * 0.1:
+                    print(f"Ativo {ativo['id']} colapsou (preço {novo_valor:.2f}) - removendo da carteira")
+                    remover_ativo_para_todos(ativo["id"], conn)   # apenas remove das carteiras, não desativa
+
+                # 7. Arredondamento final
+                novo_valor = round(novo_valor, 2)
+
+                # Atualiza preço do ativo
+                conn.execute("UPDATE investimentos SET valor_cota = ? WHERE id = ?", (novo_valor, ativo["id"]))
+
+                # Insere histórico
+                conn.execute("""
+                    INSERT INTO historico_precos (investimento_id, preco, data)
+                    VALUES (?, ?, ?)
+                """, (ativo["id"], novo_valor, datetime.now().isoformat()))
+
+            # Limpa histórico antigo: mantém apenas os últimos 100 registros por ativo
+            for ativo in ativos:
+                keep_ids = conn.execute("""
+                    SELECT id FROM historico_precos
+                    WHERE investimento_id = ?
+                    ORDER BY data DESC
+                    LIMIT 100
+                """, (ativo["id"],)).fetchall()
+                keep_ids = [row[0] for row in keep_ids]
+                if keep_ids:
+                    placeholders = ','.join('?' for _ in keep_ids)
+                    conn.execute(f"""
+                        DELETE FROM historico_precos
+                        WHERE investimento_id = ? AND id NOT IN ({placeholders})
+                    """, (ativo["id"], *keep_ids))
+
+            # Atualiza timestamp da última atualização (se a coluna existir)
+            try:
+                conn.execute("UPDATE investimentos SET ultimo_update = ?", (datetime.now().isoformat(),))
+            except sqlite3.OperationalError:
+                pass  # coluna não existe, ignora
+
+            conn.commit()
+        except Exception as e:
+            conn.rollback()
+        finally:
+            conn.close()
         print(f"[{datetime.now()}] Ativos atualizados e histórico limpo")
 
 def busca_investimento_temporarios():

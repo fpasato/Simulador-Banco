@@ -47,9 +47,10 @@
                                 <div><small>Saldo:</small> <strong class="card-saldo">R$ {{
                                         "{:,.2f}".format(investimento.saldo) }}</strong></div>
                                 <div><small>Lucro/Prejuízo:</small>
-                                <strong class="card-lucro {% if investimento.lucro_prejuizo > 0 %}positive{% elif investimento.lucro_prejuizo < 0 %}negative{% endif %}">
-                                    R$ {{ "{:,.2f}".format(investimento.lucro_prejuizo) }}
-                                </strong>
+                                    <strong
+                                        class="card-lucro {% if investimento.lucro_prejuizo > 0 %}positive{% elif investimento.lucro_prejuizo < 0 %}negative{% endif %}">
+                                        R$ {{ "{:,.2f}".format(investimento.lucro_prejuizo) }}
+                                    </strong>
                                 </div>
                                 {% if investimento.temporario %}
                                 <div><small>Tempo restante:</small>
@@ -70,20 +71,28 @@
                 </div>
 
                 <div id="content-explorar" class="tab-pane">
-                    <div class="ativos-grid">
-                        {% for ativo in investimentos_disponiveis %}
-                        <div class="ativo-card" data-nome="{{ ativo['nome'] }}"
-                            data-descricao="{{ ativo['descricao'] }}" data-preco="{{ ativo['valor_cota'] }}"
-                            data-risco="{{ ativo['risco'] }}" data-ativo-id="{{ ativo['id'] }}">
-                            <h3>{{ ativo['nome'] }}</h3>
-                            <span style="font-size: 0.85rem; color: var(--text-muted);">Risco: {{ ativo['risco']
-                                }}</span>
-                            <p class="ativo-preco" style="font-weight: bold; color: var(--primary); font-size: 1.2rem;">
-                                R$ {{
-                                "{:,.2f}".format(ativo['valor_cota']) }}</p>
+                    {% for tipo, setores in investimentos_por_tipo.items() %}
+                    <div class="tipo-section">
+                        <h2 class="tipo-title">{{ tipo }}</h2>
+
+                        {% for setor, ativos in setores.items() %}
+                        <div class="setor-block">
+                            <h3 class="setor-title">{{ setor | capitalize }}</h3>
+                            <div class="ativos-grid">
+                                {% for ativo in ativos %}
+                                <div class="ativo-card" data-nome="{{ ativo.nome }}"
+                                    data-descricao="{{ ativo.descricao }}" data-preco="{{ ativo.valor_cota }}"
+                                    data-risco="{{ ativo.risco }}" data-ativo-id="{{ ativo.id }}">
+                                    <h3>{{ ativo.nome }}</h3>
+                                    <span>Risco: {{ ativo.risco }}</span>
+                                    <p class="ativo-preco">R$ {{ "{:,.2f}".format(ativo.valor_cota) }}</p>
+                                </div>
+                                {% endfor %}
+                            </div>
                         </div>
                         {% endfor %}
                     </div>
+                    {% endfor %}
                 </div>
             </div>
         </div>

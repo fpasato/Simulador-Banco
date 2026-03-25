@@ -510,15 +510,16 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    const containerAtivos = document.querySelector('.ativos-grid');
-    if (containerAtivos) {
-        containerAtivos.addEventListener('click', (e) => {
+    const containersAtivos = document.querySelectorAll('.ativos-grid');
+
+    containersAtivos.forEach(container => {
+        container.addEventListener('click', (e) => {
             const card = e.target.closest('.ativo-card');
             if (!card) return;
             if (e.target.closest('form') || e.target.closest('button')) return;
             abrirModalPeloCard(e, card);
         });
-    }
+    });
 
     // ========== Inicialização ==========
     renderizarCards(window.initialCarteira);

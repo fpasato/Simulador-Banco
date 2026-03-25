@@ -1,14 +1,17 @@
-import sqlite3
 from flask import Blueprint, render_template, session, request, redirect, url_for, jsonify
+import sqlite3
+import time
+from collections import defaultdict
+
 from utils.services.banco.investimento import (
     carregar_carteira, load_all_investiments,
     history_prices, buy_investment, notificacoes_pendentes, notificacoes_lock,
     processar_investimentos_expirados
 )
 from utils.validators import get_db
-import time
 
 investimento_bp = Blueprint('investimento', __name__)
+from collections import defaultdict
 
 @investimento_bp.route("/investimento")
 def investimento():
@@ -17,24 +20,47 @@ def investimento():
     conta_id = session['user_info']['conta_id']
     popup_message = session.pop('popup_message', None)
     popup_type = session.pop('popup_type', None)
+
+    # Carrega todos os investimentos ativos
     investimentos_data = load_all_investiments()
     investimentos_disponiveis = investimentos_data['investimentos']
+    print("TOTAL ATIVOS:", len(investimentos_disponiveis))
+
+    # Agrupa por tipo -> setor
+    investimentos_por_tipo = defaultdict(lambda: defaultdict(list))
+    for ativo in investimentos_disponiveis:
+        tipo = ativo.get('tipo', 'outros')
+        setor = ativo.get('setor', 'geral')
+        investimentos_por_tipo[tipo][setor].append(ativo)
+
+    # (Opcional) imprime para debug no terminal
+    for tipo, setores in investimentos_por_tipo.items():
+        for setor, ativos in setores.items():
+            print(f"{tipo} / {setor}: {len(ativos)} ativos")
+
+    # Converte para dicionário normal (mais fácil de iterar no template)
+    investimentos_por_tipo = {k: dict(v) for k, v in investimentos_por_tipo.items()}
+
+    # Restante do código (carteira, saldo, etc.)
     carteira_data = carregar_carteira(conta_id)
     conn = get_db()
     conn.row_factory = sqlite3.Row
     conta = conn.execute("SELECT saldo FROM contas WHERE id = ?", (conta_id,)).fetchone()
     saldo_atual = conta['saldo'] if conta else 0
     conn.close()
+
     if not carteira_data or not carteira_data.get('investimentos'):
         carteira = []
         valor_carteira = 0
     else:
         carteira = carteira_data['investimentos']
         valor_carteira = sum(item['saldo'] for item in carteira) if carteira else 0
+
     return render_template(
         "investimento/index.html",
         carteira=carteira,
-        investimentos_disponiveis=investimentos_disponiveis,
+        investimentos_disponiveis=investimentos_disponiveis,   # opcional
+        investimentos_por_tipo=investimentos_por_tipo,        # ESSENCIAL
         valor_carteira=valor_carteira,
         saldo=saldo_atual,
         session=session,

@@ -3,26 +3,15 @@ import sqlite3
 conn = sqlite3.connect("database.db")
 cursor = conn.cursor()
 
-# Limpa todas as tabelas exceto investimentos
-tabelas_para_limpar = [
-    "contas", 
-    "usuarios",
-    "carteira_investimentos", 
-    "investimentos_temporarios", 
-    "historico_precos",
-    "faturas", 
-    "transacoes_conta", 
-    "cartoes", 
-    "transacoes_pix",
-    "chaves_pix"
-]
+cursor.execute("PRAGMA table_info(investimentos)")
+colunas = cursor.fetchall()
+print(colunas)
 
-for tabela in tabelas_para_limpar:
-    try:
-        cursor.execute(f"DELETE FROM {tabela}")
-        print(f"✅ Tabela {tabela} limpa")
-    except sqlite3.OperationalError as e:
-        print(f"⚠️  Tabela {tabela} não existe: {e}")
+
+# Atualiza registros que possam estar NULL (caso existam)
+cursor.execute("UPDATE investimentos SET tipo = 'fundo' WHERE tipo IS NULL")
+cursor.execute("UPDATE investimentos SET setor = 'geral' WHERE setor IS NULL")
+
 
 conn.commit()
 conn.close()
