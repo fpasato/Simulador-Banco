@@ -98,14 +98,14 @@ def buy_investment(conta_id, investimento_id, quantidade, tempo):
     print(f"DEBUG: Investimento {investimento_id} encontrado? {ativo is not None}")
 
     try:
-        quantidade = int(quantidade)
+        quantidade = float(quantidade)
     except (TypeError, ValueError):
         print("DEBUG: Quantidade inválida")
         conn.close()
         return False
 
-    if quantidade <= 0:
-        print("DEBUG: Quantidade deve ser maior que 0")
+    if quantidade < 0.0001:
+        print("DEBUG: Quantidade deve ser maior que 0.0001")
         conn.close()
         return False
 
@@ -114,8 +114,8 @@ def buy_investment(conta_id, investimento_id, quantidade, tempo):
         conn.close()
         return False
 
-    valor_total = ativo['valor_cota'] * quantidade
-    preco_medio = valor_total / quantidade 
+    valor_total = round(ativo['valor_cota'] * quantidade, 6)
+    preco_medio = round(valor_total / quantidade, 6)
     
     if saldo_real < valor_total:
         print(f"DEBUG: Saldo insuficiente: {saldo_real} < {valor_total}")

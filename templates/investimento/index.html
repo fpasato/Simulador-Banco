@@ -42,7 +42,9 @@
                                 <strong>{{ investimento.nome }}</strong>
                             </div>
                             <div class="item-details" style="display: flex; gap: 20px; flex-wrap: wrap;">
-                                <div><small>Qtd:</small> <strong class="card-qtd">{{ investimento.quantidade }}</strong>
+                                <div><small>Qtd:</small> <strong class="card-qtd">
+                                        {{ investimento.quantidade|round(6) }}
+                                    </strong>
                                 </div>
                                 <div><small>Saldo:</small> <strong class="card-saldo">R$ {{
                                         "{:,.2f}".format(investimento.saldo) }}</strong></div>
@@ -71,13 +73,30 @@
                 </div>
 
                 <div id="content-explorar" class="tab-pane">
+                    {% set tipos_nomes = {
+                    'acao': 'Ações',
+                    'fundo': 'Fundos',
+                    'cripto': 'Criptomoedas',
+                    'renda_fixa': 'Renda Fixa',
+                    'cota': 'Cotas / FIIs'
+                    } %}
+                    {% set setores_nomes = {
+                    'tecnologia': 'Tecnologia',
+                    'saude': 'Saúde',
+                    'imobiliario': 'Imobiliário',
+                    'agro': 'Agronegócio',
+                    'digital': 'Digital',
+                    'financeiro': 'Financeiro',
+                    'energia': 'Energia'
+                    } %}
+
                     {% for tipo, setores in investimentos_por_tipo.items() %}
                     <div class="tipo-section">
-                        <h2 class="tipo-title">{{ tipo }}</h2>
+                        <h2 class="tipo-title">{{ tipos_nomes.get(tipo, tipo|capitalize) }}</h2>
 
                         {% for setor, ativos in setores.items() %}
                         <div class="setor-block">
-                            <h3 class="setor-title">{{ setor | capitalize }}</h3>
+                            <h3 class="setor-title">{{ setores_nomes.get(setor, setor|capitalize) }}</h3>
                             <div class="ativos-grid">
                                 {% for ativo in ativos %}
                                 <div class="ativo-card" data-nome="{{ ativo.nome }}"
@@ -130,8 +149,8 @@
                     <input type="hidden" name="investimento_id" id="input-investimento-id">
                     <div style="margin-bottom: 15px;">
                         <label>Quantidade:</label>
-                        <input type="number" name="quantidade" value="1" min="1" id="input-quantidade-compra"
-                            class="form-input" style="width: 100%; padding: 8px;">
+                        <input type="text" name="quantidade" id="input-quantidade-compra" class="form-input"
+                            style="width: 100%; padding: 8px;">
                         <label>Tempo:</label>
                         <select name="tempo" id="input-tempo-compra" class="form-input"
                             style="width: 100%; padding: 8px;">

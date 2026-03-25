@@ -82,7 +82,7 @@ def comprar():
 
     conta_id = session['user_info']['conta_id']
     investimento_id = request.form.get('investimento_id')
-    quantidade = int(request.form.get('quantidade', 1))
+    quantidade = float(request.form.get('quantidade', 1))
     tempo_em_mili = int(request.form.get('tempo', 60000))
 
     print(f"DEBUG: Compra - conta_id={conta_id}, investimento_id={investimento_id}, quantidade={quantidade}, tempo={tempo_em_mili}")

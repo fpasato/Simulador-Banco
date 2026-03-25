@@ -20,12 +20,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const modalTotalCompraEl = document.getElementById('modal-total-compra');
     const saldoAtualEl = document.getElementById('saldo-atual');
     const modalHistoricoCanvas = document.getElementById('modal-historico-chart');
-
+    const timeoutsPreco = new Map();
+    let modalPriceTimeout = null;
+    const ultimosPrecos = new Map(); 
     // ========== Estado ==========
     let modalHistoricoChartInstance = null;
     let currentInvestimentoId = null;
     let currentPreco = 0;
-    let currentQuantidadeCarteira = null;
+    let currentQuantidadeCarteira = null; 
     let currentUniqueId = null;
     let ultimoServerTime = null;
     let ultimoLocalTime = null;
@@ -53,10 +55,15 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    const parsePositiveInt = (value, fallback = 1) => {
-        const n = parseInt(value, 10);
-        return (!Number.isFinite(n) || n < 1) ? fallback : n;
+    const parsePositiveFloat = (value, fallback = 1) => {
+        const n = parseFloat(value);
+        return (!Number.isFinite(n) || n <= 0) ? fallback : n;
     };
+
+    const parsePositiveInt = (value, fallback = 1) => {
+    const n = parseInt(value);
+    return (!Number.isFinite(n) || n <= 0) ? fallback : n;
+};
 
     const formatarDataParaExibicao = (dataISO) => {
         try {
@@ -160,7 +167,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div><small>Lucro/Prejuízo:</small> <strong class="card-lucro">${formatBRL(inv.lucroPrejuizo)}</strong></div>
                     <div><small>Tempo restante:</small> <strong class="tempo-restante">--</strong></div>
                 </div>
-                <button class="btn-sell" disabled style="opacity:0.5; cursor:not-allowed;">Vender (prazo)</button>
+                ${inv.temporario ? `
+                <div class="progress-bar-container">
+                    <div class="progress-bar-fill" style="width: 0%;"></div>
+                </div>
+                ` : ''}
             `;
             container.appendChild(card);
         }
@@ -198,34 +209,70 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function iniciarContagemLocal() {
-        setInterval(() => {
+        let animationId = null;
+        let isRunning = true;
+
+        // Função de animação contínua (chamada a cada frame)
+        function atualizarBarrasContinuamente() {
+            if (!isRunning) return;
+
             const investimentosStorage = carregarInvestimentosDoStorage();
+            const agora = Date.now();
+
             for (const id in investimentosStorage) {
                 const inv = investimentosStorage[id];
                 const card = document.querySelector(`.invest-item-card[data-id="${id}"]`);
                 if (!card) continue;
+
+                const barraFill = card.querySelector('.progress-bar-fill');
+                if (barraFill) {
+                    const tempoRestanteMs = inv.duracao - (agora - inv.tempo_inicio);
+                    if (tempoRestanteMs <= 0) {
+                        // Investimento expirado será removido no próximo intervalo de texto
+                        continue;
+                    }
+                    const tempoDecorridoMs = inv.duracao - tempoRestanteMs;
+                    const percentual = (tempoDecorridoMs / inv.duracao) * 100;
+                    barraFill.style.width = `${Math.min(100, Math.max(0, percentual))}%`;
+                }
+            }
+
+            animationId = requestAnimationFrame(atualizarBarrasContinuamente);
+        }
+
+        // Atualização do texto de tempo restante a cada segundo
+        setInterval(() => {
+            const investimentosStorage = carregarInvestimentosDoStorage();
+            const agora = Date.now();
+
+            for (const id in investimentosStorage) {
+                const inv = investimentosStorage[id];
+                const card = document.querySelector(`.invest-item-card[data-id="${id}"]`);
+                if (!card) continue;
+
                 const tempoSpan = card.querySelector('.tempo-restante');
                 if (tempoSpan) {
-                    const agora = Date.now();
                     const tempoRestanteMs = inv.duracao - (agora - inv.tempo_inicio);
                     if (tempoRestanteMs <= 0) {
                         delete investimentosStorage[id];
                         card.remove();
                     } else {
-                        const tempoRestanteSegundos = Math.floor(tempoRestanteMs / 1000);
-                        const horas = Math.floor(tempoRestanteSegundos / 3600);
-                        const minutos = Math.floor((tempoRestanteSegundos % 3600) / 60);
-                        const segundos = tempoRestanteSegundos % 60;
-                        let texto = horas > 0 
-                            ? `${horas.toString().padStart(2, '0')}:${minutos.toString().padStart(2, '0')}:${segundos.toString().padStart(2, '0')}`
-                            : `${minutos.toString().padStart(2, '0')}:${segundos.toString().padStart(2, '0')}`;
+                        const segundos = Math.floor(tempoRestanteMs / 1000);
+                        const horas = Math.floor(segundos / 3600);
+                        const minutos = Math.floor((segundos % 3600) / 60);
+                        const segs = segundos % 60;
+                        const texto = horas > 0
+                            ? `${horas.toString().padStart(2, '0')}:${minutos.toString().padStart(2, '0')}:${segs.toString().padStart(2, '0')}`
+                            : `${minutos.toString().padStart(2, '0')}:${segs.toString().padStart(2, '0')}`;
                         tempoSpan.textContent = texto;
                     }
                 }
             }
         }, 1000);
-    }
 
+        // Inicia a animação
+        animationId = requestAnimationFrame(atualizarBarrasContinuamente);
+    }
     // ========== Gráfico ==========
     const carregarHistorico = async (investimentoId) => {
         try {
@@ -321,8 +368,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ========== Forms ==========
     const updateBuyTotal = () => {
-        const qtd = parsePositiveInt(inputQuantidadeComprar.value, 1);
-        inputQuantidadeComprar.value = qtd;
+        let qtd = parseFloat(inputQuantidadeComprar.value);
+        if (isNaN(qtd) || qtd < 0) {
+            qtd = 0;
+            // Não reescreve o campo aqui
+        }
         modalTotalCompraEl.innerText = formatBRL(currentPreco * qtd);
     };
 
@@ -338,7 +388,7 @@ document.addEventListener('DOMContentLoaded', () => {
         currentPreco = 0;
         currentQuantidadeCarteira = null;
         inputInvestimentoIdComprar.value = investimentoId;
-        inputQuantidadeComprar.value = 1;
+        inputQuantidadeComprar.value = ''; 
         let url;
         if (temporario !== undefined) {
             url = `/investimento/detalhes-item?tipo=${temporario ? 'temporario' : 'normal'}&id=${id}&investimento_id=${investimentoId}`;
@@ -393,24 +443,41 @@ document.addEventListener('DOMContentLoaded', () => {
             ultimoLocalTime = Date.now();
             saldoAtualEl.innerText = formatBRL(data.saldo || 0);
             atualizarCardsComDadosDoServidor(data.carteira);
+            
             const ativos = Array.isArray(data.ativos_disponiveis) ? data.ativos_disponiveis : [];
             const ativosPorId = new Map(ativos.map(item => [String(item.id), item]));
+            
             document.querySelectorAll('.ativo-card').forEach(card => {
                 const ativoId = card.dataset.ativoId;
                 if (!ativoId) return;
                 const ativo = ativosPorId.get(ativoId);
                 if (!ativo) return;
                 const precoEl = card.querySelector('.ativo-preco');
-                if (precoEl) precoEl.innerText = formatBRL(ativo.valor_cota || 0);
-                card.dataset.preco = String(ativo.valor_cota || 0);
+                if (precoEl) {
+                    const precoAnterior = ultimosPrecos.get(ativoId) || parseFloat(card.dataset.preco || 0);
+                    const precoNovo = ativo.valor_cota || 0;
+                    precoEl.innerText = formatBRL(precoNovo);
+                    card.dataset.preco = String(precoNovo);
+                    
+                    // Remove as classes antes de aplicar a nova direção
+                    if (precoNovo > precoAnterior) {
+                        precoEl.classList.remove('price-down');
+                        precoEl.classList.add('price-up');
+                    } else if (precoNovo < precoAnterior) {
+                        precoEl.classList.remove('price-up');
+                        precoEl.classList.add('price-down');
+                    }
+                    // Se precoNovo == precoAnterior, mantém a classe atual
+                    ultimosPrecos.set(ativoId, precoNovo);
+                }
                 card.dataset.risco = String(ativo.risco || '');
             });
-            
+                    
             if (modal.classList.contains('active')) {
                 let precoAtualizado = null;
                 let qtdAtualizada = null;
                 let lucroPrejuizo = null;
-
+                
                 // 1. Tenta encontrar na carteira (se currentUniqueId existe)
                 if (currentUniqueId) {
                     const itemCarteira = data.carteira.find(item => item.id == currentUniqueId);
@@ -420,7 +487,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         lucroPrejuizo = itemCarteira.lucro_prejuizo;
                     }
                 }
-
+                
                 // 2. Se não encontrou na carteira, tenta nos ativos disponíveis (pelo investimentoId)
                 if (precoAtualizado === null && currentInvestimentoId) {
                     const ativo = data.ativos_disponiveis.find(a => a.id == currentInvestimentoId);
@@ -428,19 +495,32 @@ document.addEventListener('DOMContentLoaded', () => {
                         precoAtualizado = Number(ativo.valor_cota) || 0;
                     }
                 }
-
+                
                 // Se encontrou algum preço, atualiza o modal e o gráfico
                 if (precoAtualizado !== null) {
                     // Atualiza o preço atual se ele mudou
                     if (precoAtualizado !== currentPreco) {
+                        const precoAnterior = currentPreco;
                         currentPreco = precoAtualizado;
                         modalPrecoCota.innerText = formatBRL(currentPreco);
                         updateBuyTotal();
+                        
+                        // Remove timer anterior, se existir
+                        if (modalPriceTimeout) clearTimeout(modalPriceTimeout);
+                        
+                    // Aplica a classe permanentemente
+                        if (precoAtualizado > precoAnterior) {
+                            modalPrecoCota.classList.remove('price-down');
+                            modalPrecoCota.classList.add('price-up');
+                        } else if (precoAtualizado < precoAnterior) {
+                            modalPrecoCota.classList.remove('price-up');
+                            modalPrecoCota.classList.add('price-down');
+                        }
                     }
-
+                    
                     // SEMPRE adiciona um ponto no gráfico com o preço atual
                     adicionarPontoAoGrafico(currentPreco);
-
+                    
                     // Atualiza quantidade e lucro/prejuízo se existirem
                     if (qtdAtualizada !== null && qtdAtualizada !== currentQuantidadeCarteira) {
                         currentQuantidadeCarteira = qtdAtualizada;
@@ -460,6 +540,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }
             }
+            
             if (data.notificacoes && data.notificacoes.length > 0) {
                 data.notificacoes.forEach(notif => {
                     if (notif.tipo === 'venda_automatica') {
@@ -494,11 +575,54 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         modal.classList.add('active');
     };
-
+    
     // ========== Event Listeners ==========
-    if (inputQuantidadeComprar) inputQuantidadeComprar.addEventListener('input', updateBuyTotal);
+    formComprar.addEventListener('submit', function(e) {
+        let qtdStr = inputQuantidadeComprar.value.trim();
+        
+        // Substitui vírgula por ponto (se houver)
+        qtdStr = qtdStr.replace(',', '.');
+        
+        let qtd = parseFloat(qtdStr);
+        
+        // Valida: não pode ser vazio, NaN, zero ou negativo
+        if (qtdStr === '' || isNaN(qtd) || qtd <= 0) {
+            e.preventDefault();
+            if (typeof showPopup === 'function') {
+                showPopup('Por favor, insira uma quantidade válida (maior que zero).', 'error');
+            }
+            return false;
+        }
+        
+        // Garante que o valor enviado seja com ponto decimal
+        inputQuantidadeComprar.value = qtd;
+        return true;
+    });
+    // No DOMContentLoaded, após obter inputQuantidadeComprar
+    if (inputQuantidadeComprar) {
+        // Apenas atualiza o total quando o valor mudar (não modifica o campo)
+        inputQuantidadeComprar.addEventListener('input', function() {
+            updateBuyTotal();
+        });
+
+        // No blur, garante que o valor seja um número válido (corrige vazio ou NaN)
+        inputQuantidadeComprar.addEventListener('blur', function() {
+            let val = this.value;
+            if (val === '' || val === null) {
+                this.value = '0';
+            } else {
+                let num = parseFloat(val);
+                if (isNaN(num)) {
+                    this.value = '0';
+                } else {
+                    this.value = num;
+                }
+            }
+            updateBuyTotal();
+        });
+}
     btnClose.addEventListener('click', () => modal.classList.remove('active'));
-    modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.remove('active'); });
+    // modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.remove('active'); });
 
     const containerCarteira = document.querySelector('.investimentos-lista');
     if (containerCarteira) {
