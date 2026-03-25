@@ -172,92 +172,242 @@ def remover_ativo_para_todos(ativo_id, conn):
     # Opcional: registrar notificações para os usuários afetados
     # (Para simplificar, omitiremos notificações aqui)
 
+import math
+import random
+import sqlite3
+from datetime import datetime, date
+from threading import Lock
+from utils.validators import get_db
+
+_notificacoes_pendentes = {}
+_notificacoes_lock = Lock()
+_atualizar_lock = Lock()
+
+def garantir_tabela_variacoes(conn):
+    conn.execute('''
+        CREATE TABLE IF NOT EXISTS variacoes_diarias (
+            ativo_id INTEGER PRIMARY KEY,
+            data TEXT NOT NULL,
+            variacao REAL NOT NULL
+        )
+    ''')
+    conn.commit()
+
+def remover_ativo_para_todos(ativo_id, conn):
+    """Remove o ativo das carteiras e desativa-o permanentemente."""
+    conn.execute("DELETE FROM carteira_investimentos WHERE investimento_id = ?", (ativo_id,))
+    conn.execute("DELETE FROM investimentos_temporarios WHERE investimento_id = ?", (ativo_id,))
+    conn.execute("UPDATE investimentos SET ativo = 0 WHERE id = ?", (ativo_id,))  # <- agora desativa
 
 def atualizar_ativos():
     with _atualizar_lock:
         conn = get_db()
         conn.row_factory = sqlite3.Row
         try:
-            ativos = conn.execute("SELECT id, valor_cota, risco, preco_base FROM investimentos WHERE ativo = 1").fetchall()
+            garantir_tabela_variacoes(conn)
+
+            # Carrega todos os ativos ativos
+            ativos = conn.execute("""
+                SELECT id, nome, valor_cota, risco, preco_base, tipo, setor
+                FROM investimentos
+                WHERE ativo = 1
+            """).fetchall()
+
+            hoje = date.today().isoformat()
+            agora = datetime.now()
+
+            drift_por_tipo = {
+                'acao': 0.02,
+                'fundo': 0.01,
+                'cripto': 0.15,        # aumentado
+                'renda_fixa': 0.005,
+                'cota': 0.01
+            }
+
+            reversao_por_tipo = {
+                'acao': 0.01,
+                'fundo': 0.008,
+                'cripto': 0.001,       # reduzido drasticamente
+                'renda_fixa': 0.05,
+                'cota': 0.02
+            }
+
+            volatilidade_base = {
+                'baixo': 0.03,
+                'medio': 0.15,
+                'alto': 0.80           # aumentado
+            }
+
+            volatilidade_mult = {
+                'acao': 1.0,
+                'fundo': 0.9,
+                'cripto': 2.2,         # aumentado
+                'renda_fixa': 0.6,
+                'cota': 1.0
+            }
+
+            max_passo = {
+                'acao': 0.10,
+                'fundo': 0.08,
+                'cripto': 0.12,        # aumentado
+                'renda_fixa': 0.03,
+                'cota': 0.07
+            }
+
+            limite_diario = {
+                'acao': 0.15,
+                'fundo': 0.12,
+                'cripto': 0.35,        # aumentado
+                'renda_fixa': 0.08,
+                'cota': 0.15
+            }
+        
+
+            intervalo_anos = 30 / (365 * 24 * 3600)   # 30 segundos em anos
+
+            # Carrega variação acumulada do dia
+            variacao_diaria = {}
+            rows = conn.execute("SELECT ativo_id, variacao FROM variacoes_diarias WHERE data = ?", (hoje,)).fetchall()
+            for row in rows:
+                variacao_diaria[row['ativo_id']] = row['variacao']
+
+            updates = []          # (novo_valor, id)
+            historico = []        # (investimento_id, preco, data)
+            variacoes_para_salvar = []   # (ativo_id, data, variacao_nova)
+            ativos_removidos = []
 
             for ativo in ativos:
-                valor = ativo["valor_cota"]
-                preco_base = ativo["preco_base"]
-                risco = ativo["risco"]
+                ativo_id = ativo['id']
+                nome = ativo['nome']
+                valor = ativo['valor_cota']
+                preco_base = ativo['preco_base']
+                risco = ativo['risco']
+                tipo = ativo['tipo']
 
-                # 1. Volatilidade anualizada (em percentual)
-                if risco == "baixo":
-                    volatilidade_anual = 0.03   # 3% ao ano
-                elif risco == "medio":
-                    volatilidade_anual = 0.15   # 15% ao ano
-                else:  # alto
-                    volatilidade_anual = 0.50   # 50% ao ano (realista para cripto)
+                try:
+                    # Volatilidade ajustada
+                    volatilidade_anual = volatilidade_base[risco] * volatilidade_mult.get(tipo, 1.0)
+                    volatilidade_intervalo = volatilidade_anual * math.sqrt(intervalo_anos)
 
-                # 2. Conversão para o intervalo (30 segundos)
-                intervalo_anos = 30 / (365 * 24 * 3600)  # 30 segundos em anos
-                volatilidade_intervalo = volatilidade_anual * (intervalo_anos ** 0.5)
+                    ruido = random.gauss(0, volatilidade_intervalo)
+                    if tipo == 'cripto':
+                        if random.random() < 0.01:  # 1% de chance
+                            choque = random.uniform(-0.25, 0.25)  # -25% a +25%
+                            ruido += choque
 
-                # Ruído log-normal
-                ruido = random.gauss(0, volatilidade_intervalo)
+                    # Drift
+                    drift_anual = drift_por_tipo.get(tipo, 0.01)
+                    drift_intervalo = drift_anual * intervalo_anos
 
-                # 3. Reversão à média com força controlável (ajuste conforme desejar)
-                forca_reversao = 0.0015   # força de correção (ajustável)
-                reversao = (preco_base - valor) * forca_reversao
+                    # Reversão à média
+                    forca_reversao_anual = reversao_por_tipo.get(tipo, 0.005)
+                    reversao = (preco_base - valor) * forca_reversao_anual * intervalo_anos
+                    # Cap maior para cripto (opcional)
+                    if tipo == 'cripto':
+                        reversao_rel = max(-0.12, min(0.12, reversao / valor))
+                    else:
+                        reversao_rel = max(-0.05, min(0.05, reversao / valor))
 
-                # 4. Variação total (em log)
-                variacao_log = ruido + (reversao / valor)   # reversão relativa ao preço atual
-                novo_valor = valor * math.exp(variacao_log)
+                    variacao_log = drift_intervalo + ruido + reversao_rel
+                    novo_valor = valor * math.exp(variacao_log)
 
-                # 5. Piso dinâmico baseado no preço base (nunca cai abaixo de 20% do base)
-                preco_minimo = preco_base * 0.2
-                if novo_valor < preco_minimo:
-                    novo_valor = preco_minimo
+                    # Limite por passo
+                    max_passo_tipo = max_passo.get(tipo, 0.10)
+                    if novo_valor > valor * (1 + max_passo_tipo):
+                        novo_valor = valor * (1 + max_passo_tipo)
+                    elif novo_valor < valor * (1 - max_passo_tipo):
+                        novo_valor = valor * (1 - max_passo_tipo)
 
-                # 6. Evento extremo (raro) – remove o ativo das carteiras apenas se colapsar abaixo de 10% do base
-                if novo_valor < preco_base * 0.1:
-                    print(f"Ativo {ativo['id']} colapsou (preço {novo_valor:.2f}) - removendo da carteira")
-                    remover_ativo_para_todos(ativo["id"], conn)   # apenas remove das carteiras, não desativa
+                    # Limite diário (corrigido)
+                    limite = limite_diario.get(tipo, 0.15)
+                    variacao_hoje = (novo_valor / valor) - 1
+                    acumulado = variacao_diaria.get(ativo_id, 0.0)
+                    if abs(acumulado + variacao_hoje) > limite:
+                        if (acumulado + variacao_hoje) > 0:
+                            ajuste = limite - acumulado
+                        else:
+                            ajuste = -limite - acumulado
+                        novo_valor = valor * (1 + ajuste)
+                        variacao_hoje = ajuste
+                    novo_acumulado = acumulado + variacao_hoje
+                    variacoes_para_salvar.append((ativo_id, hoje, novo_acumulado))
 
-                # 7. Arredondamento final
-                novo_valor = round(novo_valor, 2)
+                    # Piso mínimo
+                    preco_minimo = preco_base * 0.2
+                    if novo_valor < preco_minimo:
+                        novo_valor = preco_minimo
 
-                # Atualiza preço do ativo
-                conn.execute("UPDATE investimentos SET valor_cota = ? WHERE id = ?", (novo_valor, ativo["id"]))
+                    # Colapso
+                    if novo_valor < preco_base * 0.1:
+                        print(f"[COLAPSO] Ativo {ativo_id} ({nome}) caiu para {novo_valor:.2f}. Removendo e desativando.")
+                        remover_ativo_para_todos(ativo_id, conn)
+                        ativos_removidos.append(ativo_id)
+                        continue
 
-                # Insere histórico
-                conn.execute("""
-                    INSERT INTO historico_precos (investimento_id, preco, data)
-                    VALUES (?, ?, ?)
-                """, (ativo["id"], novo_valor, datetime.now().isoformat()))
+                    # Arredondamento
+                    if tipo == 'cripto':
+                        novo_valor = round(novo_valor, 6)
+                    else:
+                        novo_valor = round(novo_valor, 4)
 
-            # Limpa histórico antigo: mantém apenas os últimos 100 registros por ativo
+                    updates.append((novo_valor, ativo_id))
+                    historico.append((ativo_id, novo_valor, agora.isoformat(timespec='microseconds')))
+
+                except Exception as e:
+                    print(f"[ERRO] Processando ativo {ativo_id} ({nome}): {e}")
+                    continue
+
+            # Executa em lote
+            if updates:
+                conn.executemany("UPDATE investimentos SET valor_cota = ? WHERE id = ?", updates)
+            if historico:
+                conn.executemany(
+                    "INSERT INTO historico_precos (investimento_id, preco, data) VALUES (?, ?, ?)",
+                    historico
+                )
+            if variacoes_para_salvar:
+                conn.executemany(
+                    "INSERT OR REPLACE INTO variacoes_diarias (ativo_id, data, variacao) VALUES (?, ?, ?)",
+                    variacoes_para_salvar
+                )
+            # Remove variações muito antigas (opcional)
+            conn.execute("DELETE FROM variacoes_diarias WHERE data < date('now', '-30 days')")
+
+            # Limpeza do histórico (mantém últimos 100 registros)
             for ativo in ativos:
+                if ativo['id'] in ativos_removidos:
+                    continue
                 keep_ids = conn.execute("""
                     SELECT id FROM historico_precos
                     WHERE investimento_id = ?
                     ORDER BY data DESC
                     LIMIT 100
-                """, (ativo["id"],)).fetchall()
+                """, (ativo['id'],)).fetchall()
                 keep_ids = [row[0] for row in keep_ids]
                 if keep_ids:
                     placeholders = ','.join('?' for _ in keep_ids)
                     conn.execute(f"""
                         DELETE FROM historico_precos
                         WHERE investimento_id = ? AND id NOT IN ({placeholders})
-                    """, (ativo["id"], *keep_ids))
+                    """, (ativo['id'], *keep_ids))
 
-            # Atualiza timestamp da última atualização (se a coluna existir)
+            # Atualiza timestamp global
             try:
-                conn.execute("UPDATE investimentos SET ultimo_update = ?", (datetime.now().isoformat(),))
+                conn.execute("UPDATE investimentos SET ultimo_update = ?", (agora.isoformat(),))
             except sqlite3.OperationalError:
-                pass  # coluna não existe, ignora
+                pass
 
             conn.commit()
+            print(f"[{datetime.now().isoformat(timespec='seconds')}] Atualização OK: {len(updates)} ativos, {len(ativos_removidos)} removidos.")
+
+        except sqlite3.Error as e:
+            print(f"[ERRO SQLite] {e}")
+            conn.rollback()
         except Exception as e:
+            print(f"[ERRO inesperado] {e}")
             conn.rollback()
         finally:
             conn.close()
-        print(f"[{datetime.now()}] Ativos atualizados e histórico limpo")
 
 def busca_investimento_temporarios():
     conn = get_db()

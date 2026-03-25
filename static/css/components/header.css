@@ -10,8 +10,8 @@ body {
     --light-color: #1592ff;
     --light-middle: #AB94EE;
     --transition-default: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    --nav-bg-mobile: rgba(245, 245, 245, 0.9); /* fundo do menu mobile no tema claro */
-    --logo-filter: brightness(0); /* logo preta */
+    --nav-bg-mobile: rgba(245, 245, 245, 0.9);
+    --logo-filter: brightness(0);
 }
 
 /* Tema escuro */
@@ -19,15 +19,14 @@ body.darktheme {
     --header-bg: #1a1a1a;
     --link-color: #ffffff;
     --nav-bg-mobile: rgba(26, 26, 26, 0.9);
-    --logo-filter: brightness(0) invert(1); /* logo branca */
-    /* mantém as outras cores iguais */
+    --logo-filter: brightness(0) invert(1);
 }
 
 /* ===== RESET / BASE ===== */
 body {
     margin: 0;
     font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-    background-color: var(--header-bg); /* opcional: para fundo da página */
+    background-color: var(--header-bg);
     transition: background-color 0.3s ease;
 }
 
@@ -39,7 +38,7 @@ body {
     background: var(--header-bg);
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: center;          /* centraliza verticalmente logo e nav */
     padding: 0 2%;
     box-sizing: border-box;
     overflow: hidden;
@@ -123,9 +122,11 @@ body {
 /* ===== NAVEGAÇÃO ===== */
 .nav-minimal {
     display: flex;
-    align-items: center;
+    align-items: center;          /* alinha os itens internos verticalmente */
+    justify-content: center;
     gap: 30px;
     z-index: 10;
+    height: 100%;                 /* ocupa toda a altura do header */
 }
 
 .nav-link {
@@ -136,7 +137,10 @@ body {
     letter-spacing: 0.5px;
     position: relative;
     transition: color 0.3s ease;
-    padding: 4px 0;
+    display: inline-flex;         /* permite alinhamento vertical do conteúdo */
+    align-items: center;          /* centraliza o texto (ou ícone) verticalmente */
+    height: 100%;                 /* herda a altura do .nav-minimal */
+    line-height: normal;          /* evita interferência do line-height herdado */
 }
 
 .nav-link:hover {
@@ -175,7 +179,7 @@ body {
     border-radius: 50%;
     width: 40px;
     height: 40px;
-    display: flex;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
     border: none;
@@ -183,14 +187,15 @@ body {
     cursor: pointer;
     transition: transform 0.2s, background 0.3s;
     padding: 0;
-    margin-left: 15px;
+    margin: 0;                     /* remove qualquer margem indesejada */
+    flex-shrink: 0;
 }
 
 #theme-toggle img {
     width: 20px;
     height: 20px;
     object-fit: contain;
-    filter: brightness(0) invert(1); /* ícone sempre branco */
+    filter: brightness(0) invert(1);
     transition: all 0.4s;
 }
 
@@ -228,7 +233,7 @@ body {
     to { transform: translateX(-50%); }
 }
 
-/* ===== RESPONSIVIDADE DETALHADA ===== */
+/* ===== RESPONSIVIDADE ===== */
 
 /* Tablet (max-width: 768px) */
 @media (max-width: 768px) {
@@ -257,10 +262,21 @@ body {
         background: var(--nav-bg-mobile);
         backdrop-filter: blur(4px);
         border-radius: 40px;
+        height: auto;              /* permite altura automática */
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
 
     .nav-link {
         font-size: 0.85rem;
+        height: auto;              /* remove a altura 100% para não forçar */
+        line-height: normal;
+        padding: 0;               /* evita desalinhamento extra */
+    }
+
+    #theme-toggle {
+        margin: 0;                /* garante que não haja margem extra */
     }
 
     .wave-container svg {
@@ -273,15 +289,9 @@ body {
     .header:hover::after {
         --raio-luz: 500px;
     }
-
-    /* Ajuste do botão tema no tablet */
-    #theme-toggle {
-        margin: 0 0 10px 0;
-        align-self: center;
-    }
 }
 
- 
+/* Celular (max-width: 480px) */
 @media (max-width: 480px) {
     .header {
         padding: 0 1rem;
@@ -332,7 +342,7 @@ body {
     }
 }
 
-/* Ajuste para telas muito grandes (opcional) */
+/* Telas muito grandes (opcional) */
 @media (min-width: 1400px) {
     .header {
         padding: 0 4%;
