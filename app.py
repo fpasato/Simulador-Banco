@@ -1,5 +1,4 @@
 from flask import Flask, redirect, session
-from utils.auto import start_scheduler
 
 from routes.home import home_bp
 from routes.login import login_bp  
@@ -46,7 +45,4 @@ def logout():
 
 
 if __name__ == "__main__":
-    if not getattr(app, "_scheduler_started", False):
-        start_scheduler()
-        app._scheduler_started = True
     app.run(debug=True)
