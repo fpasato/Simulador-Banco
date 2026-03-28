@@ -65,15 +65,7 @@ body.darktheme {
 }
 
 /* ===== RESET / BASE ===== */
-body {
-  background-color: var(--bg-body);
-  background-image: url('../images/bg.jpeg');
-  background-size: cover;
-  background-position: center;
-  background-attachment: fixed;
-  transition: background-color 0.3s ease;
-  margin: 0;
-}
+
 
 footer {
   margin-top: auto;

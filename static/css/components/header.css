@@ -37,8 +37,9 @@ body {
     height: var(--header-height);
     background: var(--header-bg);
     display: flex;
-    justify-content: space-between;
-    align-items: center;          /* centraliza verticalmente logo e nav */
+    justify-content: center;
+    align-items: center;      
+    
     padding: 0 2%;
     box-sizing: border-box;
     overflow: hidden;
@@ -103,6 +104,7 @@ body {
     display: flex;
     align-items: center;
     flex-shrink: 0;
+    justify-content: center;
 }
 
 .header-logo img {

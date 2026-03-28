@@ -8,10 +8,8 @@
 </head>
 
 <body id="app">
-    <!-- SCRIPT INLINE LOGO APÓS O BODY - APLICA O TEMA ANTES DE QUALQUER CONTEÚDO -->
     <script>
         (function() {
-            // Remove qualquer classe existente e adiciona a correta
             var savedTheme = localStorage.getItem('theme') || 'light';
             document.body.classList.remove('lighttheme', 'darktheme');
             document.body.classList.add(savedTheme + 'theme');
