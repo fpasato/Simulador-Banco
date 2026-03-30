@@ -5,11 +5,10 @@ async function carregarSaldo() {
         const data = await res.json();
         
         if (data.saldo !== undefined) {
-            console.log("Saldo PIX atualizado:", data.saldo);
             
             // Atualiza todos os elementos que mostram saldo
             const elementos = document.querySelectorAll('[data-saldo]');
-            console.log("Elementos encontrados:", elementos.length);
+
             
             elementos.forEach(el => {
                 if (el) {
@@ -33,8 +32,6 @@ document.addEventListener('DOMContentLoaded', carregarSaldo);
 // Atualiza a cada 5 segundos
 setInterval(carregarSaldo, 5000);
 
-// Teste manual
-console.log("Script PIX carregado!");
 
 
   async function generateKey() {

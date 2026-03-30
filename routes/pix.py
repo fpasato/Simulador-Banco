@@ -183,7 +183,6 @@ def transferir():
             # LOG: verificar chaves da conta de origem
             cursor.execute("SELECT chave FROM chaves_pix WHERE conta_id = ?", (conta_origem,))
             chaves_origem = cursor.fetchall()
-            print(f"DEBUG: Chaves encontradas para conta {conta_origem}: {chaves_origem}")  # <- importante
             if not chaves_origem:
                 raise Exception("Você não possui nenhuma chave Pix cadastrada para realizar transferências.")
             chave_origem = chaves_origem[0][0]  # primeira chave

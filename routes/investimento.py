@@ -24,7 +24,6 @@ def investimento():
     # Carrega todos os investimentos ativos
     investimentos_data = load_all_investiments()
     investimentos_disponiveis = investimentos_data['investimentos']
-    print("TOTAL ATIVOS:", len(investimentos_disponiveis))
 
     # Agrupa por tipo -> setor
     investimentos_por_tipo = defaultdict(lambda: defaultdict(list))
@@ -32,11 +31,6 @@ def investimento():
         tipo = ativo.get('tipo', 'outros')
         setor = ativo.get('setor', 'geral')
         investimentos_por_tipo[tipo][setor].append(ativo)
-
-    # (Opcional) imprime para debug no terminal
-    for tipo, setores in investimentos_por_tipo.items():
-        for setor, ativos in setores.items():
-            print(f"{tipo} / {setor}: {len(ativos)} ativos")
 
     # Converte para dicionário normal (mais fácil de iterar no template)
     investimentos_por_tipo = {k: dict(v) for k, v in investimentos_por_tipo.items()}
@@ -85,8 +79,6 @@ def comprar():
     quantidade = float(request.form.get('quantidade', 1))
     tempo_em_mili = int(request.form.get('tempo', 60000))
 
-    print(f"DEBUG: Compra - conta_id={conta_id}, investimento_id={investimento_id}, quantidade={quantidade}, tempo={tempo_em_mili}")
-
     success = buy_investment(conta_id, investimento_id, quantidade, tempo_em_mili)
 
     if success:
@@ -98,10 +90,8 @@ def comprar():
         ativo = conn.execute("SELECT id, nome, ativo FROM investimentos WHERE id = ?", (investimento_id,)).fetchone()
         conn.close()
         if not ativo:
-            print("DEBUG: Ativo não encontrado no banco")
             session['popup_message'] = f"Investimento {investimento_id} não encontrado."
         elif ativo['ativo'] != 1:
-            print(f"DEBUG: Ativo {investimento_id} está inativo")
             session['popup_message'] = "Investimento não está disponível para compra."
         else:
             session['popup_message'] = "Saldo insuficiente."

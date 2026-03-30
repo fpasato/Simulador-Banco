@@ -6,11 +6,9 @@ async function carregarSaldo() {
         const data = await res.json();
         
         if (data.saldo !== undefined) {
-            console.log("Saldo Transferência atualizado:", data.saldo);
             
             // Atualiza todos os elementos que mostram saldo
             const elementos = document.querySelectorAll('[data-saldo]');
-            console.log("Elementos encontrados:", elementos.length);
             
             elementos.forEach(el => {
                 if (el) {
@@ -35,4 +33,3 @@ document.addEventListener('DOMContentLoaded', carregarSaldo);
 // Atualiza a cada 5 segundos
 setInterval(carregarSaldo, 5000);
 
-console.log("Script Transferência carregado!");

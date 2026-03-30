@@ -561,11 +561,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ========== Abrir modal ==========
     const abrirModalPeloCard = async (e, card) => {
-        console.log("Abrindo modal para card:", card);
+        
         if (e && (e.target.closest('form') || e.target.closest('button'))) return;
         const investimentoId = card.dataset.investimentoId || card.dataset.ativoId;
         if (!investimentoId) return;
-        console.log("investimentoId:", investimentoId);
+
         const uniqueId = card.dataset.id;
         const temporario = card.dataset.temporario === '1';
         if (uniqueId !== undefined) {

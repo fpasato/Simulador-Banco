@@ -139,7 +139,6 @@ async function carregarSaldoInicial() {
         const data = await res.json();
         
         if (data.saldo !== undefined) {
-            console.log("Saldo inicial carregado:", data.saldo);
             
             // Atualiza todos os elementos que mostram saldo
             const elementos = document.querySelectorAll('[data-saldo]');
@@ -158,8 +157,6 @@ async function verificarSalario() {
     const res = await fetch("/home/verificar-salario");
     const data = await res.json();
 
-    console.log("verificando...", data); // DEBUG
-
     if (data.novo) {
         showPopup(`Salário de R$${data.valor.toFixed(2)} foi creditado`, "success");
         
@@ -168,7 +165,6 @@ async function verificarSalario() {
             .then(res => res.json())
             .then(data => {
                 if (data.saldo !== undefined) {
-                    console.log("Saldo recarregado:", data.saldo);
                     // Atualiza o saldo na tela (se tiver elemento)
                     const saldoElement = document.querySelector('[data-saldo]');
                     if (saldoElement) {
