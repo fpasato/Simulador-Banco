@@ -75,9 +75,6 @@ def get_account_by_id(id):
 
 
 
-
-
-
 def account_already_exists(numero_conta):
     
     conn = get_db()
@@ -100,8 +97,32 @@ def cpf_exists(cpf):
 
 def verifica_cpf(cpf):
     
+    # se o cpf nao tiver 11 digitos
     if len(cpf) != 11:
         return False
+    
+    # se o cpf for uma sequencia de numeros iguais
+    match cpf:
+        case "00000000000":
+            return False
+        case "11111111111":
+            return False
+        case "22222222222":
+            return False
+        case "33333333333":
+            return False
+        case "44444444444":
+            return False
+        case "55555555555":
+            return False
+        case "66666666666":
+            return False
+        case "77777777777":
+            return False
+        case "88888888888":
+            return False
+        case "99999999999":
+            return False
     
     # verifica d1
     soma, indice_digito = 0, 0
