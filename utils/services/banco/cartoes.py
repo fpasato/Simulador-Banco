@@ -1,7 +1,6 @@
 from sqlite3 import Date
 from utils.validators import get_db
-from utils.services.versaldo.functions import get_balance
-
+from utils.services.banco.saldo import get_balance
 import random
 import time
 

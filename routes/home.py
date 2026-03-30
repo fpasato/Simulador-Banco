@@ -8,6 +8,10 @@ def home():
     if not check_session():
         return redirect(url_for("login.login"))
     
+    # Captura mensagem de bônus e tipo (se houver)
+    bonus_message = session.pop('bonus_message', None)
+    bonus_type = session.pop('bonus_type', None)
+    
     resultado = session.pop("resultado_emprego", None)
     
     user_info = session.get("user_info", {})
@@ -27,11 +31,13 @@ def home():
             user_info["salario"] = salario_novo
             session["user_info"] = user_info
             conn.close()
-
+    
     return render_template(
         "home/index.html",
         nome_usuario=nome_usuario,
-        resultado=resultado
+        resultado=resultado,
+        popup_message=bonus_message,   
+        popup_type=bonus_type          
     )
         
     
