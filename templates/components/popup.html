@@ -1,10 +1,12 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/components/popup.css') }}">
-
 <div id="popup" class="popup">
     <div class="popup-content">
         <div class="info">
-            <strong id="popup-title" style="display: block; font-size: 1.1rem;"></strong>
-            <span id="popup-text" style="font-weight: 400; font-size: 0.9rem;"></span>
+            <div class="popup-icon"></div>
+            <div class="popup-text-wrapper">
+                <strong id="popup-title"></strong>
+                <span id="popup-text"></span>
+            </div>
         </div>
         <span class="close-btn" onclick="closePopup()">&times;</span>
     </div>

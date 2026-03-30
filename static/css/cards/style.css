@@ -1,53 +1,71 @@
-body.lighttheme {
-  /* Fundo */
-  --bg-body: #F3F4F6;      
-  --bg-panel: #FFFFFF;
+/* ==========================================================================
+   CARTÕES - TEMA INTEGRADO COM VARIÁVEIS GLOBAIS
+   ========================================================================== */
 
-  /* Primária */
-  --accent: #6366F1;
-  --accent-hover: #4F46E5;
-
-  /* Texto */
-  --text-main: #111827;
-  --text-muted: #6B7280;
-
-  /* Estrutura */
-  --border-light: #E5E7EB;
-
-  /* Extras (banco feel) */
-  --success: #22C55E;
-  --danger: #EF4444;
-
-  /* UI */
+/* ----- Variáveis globais (já definidas no tema pai) ----- */
+/* As variáveis globais são herdadas do documento principal, 
+   mas garantimos que existam. Caso não, definimos fallbacks. */
+:root {
+  --transition-default: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   --radius-card: 20px;
   --radius-panel: 16px;
-  --transition: all 0.3s ease;
+  --radius-md: clamp(0.75rem, 2vw, 1rem);
+  --shadow-sm: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+  --shadow-md: 0 20px 25px -5px rgb(0 0 0 / 0.05), 0 8px 10px -6px rgb(0 0 0 / 0.05);
 }
 
-body.darktheme {
-  /* Fundo */
-  --bg-body: #0F172A;        /* azul escuro moderno (melhor que preto puro) */
-  --bg-panel: #1E293B;
-
-  /* Primária */
-  --accent: #818CF8;         /* levemente mais clara no dark */
-  --accent-hover: #6366F1;
-
-  /* Texto */
-  --text-main: #F9FAFB;
-  --text-muted: #94A3B8;
-
-  /* Estrutura */
-  --border-light: #334155;
-
-  /* Extras */
+/* ===== TEMA CLARO (padrão) ===== */
+body.lighttheme {
+  --bg-body: #FEFAFE;
+  --bg-panel: #FFFFFF;
+  --accent: #4F46E5;
+  --accent-hover: #3429ff;
+  --text-main: #111827;
+  --text-muted: #6B7280;
+  --border-light: #6f69e0;
+  --border-medium: #5A4FE8;
   --success: #22C55E;
   --danger: #EF4444;
+  --danger-hover: #DC2626;
+  --primary-light: #EEF2FF;
+  --img-color: #6366F1;
+  --table-header-bg: #1e293b;
+  --table-header-text: #ffffff;
+  --table-stripe-odd: rgba(0, 0, 0, 0.02);
+  --table-stripe-even: rgba(0, 0, 0, 0.04);
+  --badge-success-bg: #dcfce7;
+  --badge-success-text: #166534;
+  --badge-danger-bg: #fee2e2;
+  --badge-danger-text: #991b1b;
+  --badge-info-bg: #dbeafe;
+  --badge-info-text: #1e40af;
+}
 
-  /* UI */
-  --radius-card: 20px;
-  --radius-panel: 16px;
-  --transition: all 0.3s ease;
+/* ===== TEMA ESCURO ===== */
+body.darktheme {
+  --bg-body: #212121;
+  --bg-panel: #3c3c3c;
+  --accent: #4cecba;
+  --accent-hover: #4F46E5;
+  --text-main: #F9FAFB;
+  --text-muted: #7f62ff;
+  --border-light: #7f62ff;
+  --border-medium: #7f62ff;
+  --success: #58d5a1;
+  --danger: #EF4444;
+  --danger-hover: #F87171;
+  --primary-light: rgba(129, 140, 248, 0.15);
+  --img-color: brightness(0) invert(1);
+  --table-header-bg: #2d2d2d;
+  --table-header-text: #f9fafb;
+  --table-stripe-odd: rgba(255, 255, 255, 0.03);
+  --table-stripe-even: rgba(255, 255, 255, 0.06);
+  --badge-success-bg: rgba(88, 213, 161, 0.2);
+  --badge-success-text: #58d5a1;
+  --badge-danger-bg: rgba(239, 68, 68, 0.2);
+  --badge-danger-text: #f87171;
+  --badge-info-bg: rgba(129, 140, 248, 0.2);
+  --badge-info-text: #818cf8;
 }
 
 /* ==========================================================================
@@ -64,6 +82,7 @@ body {
   background-color: var(--bg-body);
   color: var(--text-main);
   -webkit-font-smoothing: antialiased;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .cards-container {
@@ -82,30 +101,33 @@ body {
   font-weight: 700;
   letter-spacing: -0.02em;
   margin-bottom: 0.5rem;
+  color: var(--text-main);
 }
 
 .cards-header p {
-  color: #000;
+  color: var(--text-muted);
   font-size: 1rem;
 }
 
 /* ==========================================================================
-   DISPLAY DE CARTÕES (FLEXBOX PARA MELHOR ALINHAMENTO)
+   DISPLAY DE CARTÕES (FLEXBOX RESPONSIVO)
    ========================================================================== */
 .cards-display {
   display: flex;
   flex-wrap: wrap;
   gap: 2rem;
   margin-bottom: 4rem;
-  
   justify-content: center;
   width: 100%;
 }
 
 /* Estilo Base do Cartão */
 .bank-card {
-  width: 420px;
-  height: 250px;
+  width: 100%;
+  max-width: 420px;
+  min-width: 260px;
+  height: auto;
+  min-height: 250px;
   border-radius: var(--radius-card);
   padding: 1.5rem;
   display: flex;
@@ -113,8 +135,8 @@ body {
   justify-content: space-between;
   border: none;
   color: #FFFFFF;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
-  transition: var(--transition);
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition-default);
   text-decoration: none;
   position: relative;
   overflow: hidden;
@@ -122,23 +144,28 @@ body {
 
 .bank-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
+  box-shadow: var(--shadow-md);
 }
 
 /* Cores Específicas dos Cartões */
 .debit-card {
-  /* Gradiente escuro elegante para débito */
   background: linear-gradient(135deg, #1F2937 0%, #111827 100%);
 }
 
 .credit-card {
-  /* Gradiente vibrante para crédito */
-  background: linear-gradient(135deg, #6366F1 0%, #4338CA 100%);
+  background: linear-gradient(135deg, var(--accent) 0%, #4338CA 100%);
 }
 
 /* Reset de botão e formulário envolvendo cartões */
-.card-form { display: block; }
-.bank-card { text-align: left; font-family: inherit; }
+.card-form {
+  display: block;
+  width: 100%;
+  max-width: 420px;
+}
+.bank-card {
+  text-align: left;
+  font-family: inherit;
+}
 
 /* Elementos Internos do Cartão */
 .card-top {
@@ -156,11 +183,11 @@ body {
 }
 
 .bank-logo {
-  height: 28px; /* Controla o tamanho da logo no cartão */
-  width: auto; /* Garante que ela não fique esticada */
+  height: 28px;
+  width: auto;
   cursor: pointer;
   transition: transform 0.2s ease;
-  filter: brightness(0) invert(1); /* Deixa a logo toda branca. Remova isso se a sua logo já for branca ou se quiser manter as cores originais */
+  filter: brightness(0) invert(1);
 }
 
 .bank-logo:hover {
@@ -179,6 +206,7 @@ body {
 .card-bottom {
   display: flex;
   gap: 2rem;
+  flex-wrap: wrap;
 }
 
 .info-group label {
@@ -203,13 +231,14 @@ body {
   box-shadow: none;
   align-items: center;
   justify-content: center;
+  cursor: pointer;
 }
 
 .empty-card-slot:hover {
   border-color: var(--accent);
   color: var(--accent);
   background: rgba(99, 102, 241, 0.02);
-  transform: translateY(0); /* Remove o pulo no botão vazio */
+  transform: translateY(0);
 }
 
 .card-content-empty {
@@ -219,6 +248,7 @@ body {
   gap: 0.8rem;
   font-weight: 500;
   font-size: 0.95rem;
+  text-align: center;
 }
 
 .card-content-empty i {
@@ -239,7 +269,8 @@ body {
   border: 1px solid var(--border-light);
   border-radius: var(--radius-panel);
   padding: 1.8rem;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -1px rgba(0, 0, 0, 0.02);
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition-default);
 }
 
 .panel h3 {
@@ -275,7 +306,7 @@ body {
   border: 1px solid var(--border-light);
   border-radius: 10px;
   cursor: pointer;
-  transition: var(--transition);
+  transition: var(--transition-default);
 }
 
 .action-item:hover {
@@ -295,7 +326,7 @@ body {
   background: var(--accent);
 }
 
-/* Toggles de Segurança (Visual Minimalista) */
+/* Toggles de Segurança */
 .security-toggles {
   display: flex;
   flex-direction: column;
@@ -332,13 +363,15 @@ body {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 0.5rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
 }
 
 .invoice-badge {
   font-size: 0.7rem;
   font-weight: 600;
-  background: #FEE2E2;
-  color: #DC2626; /* Vermelho suave para vencimento */
+  background: var(--badge-danger-bg);
+  color: var(--badge-danger-text);
   padding: 0.3rem 0.6rem;
   border-radius: 20px;
 }
@@ -373,21 +406,21 @@ body {
 }
 
 .limit-info strong {
-  color: #059669; /* Verde para limite disponível */
+  color: var(--success);
 }
 
 .btn-pay {
-  margin-top: auto; /* Empurra o botão para o fundo */
+  margin-top: auto;
   padding: 1rem;
   width: 100%;
-  background: var(--text-main);
+  background: var(--border-medium);
   color: white;
   border: none;
   border-radius: 10px;
   font-weight: 600;
   font-size: 0.95rem;
   cursor: pointer;
-  transition: var(--transition);
+  transition: var(--transition-default);
 }
 
 .btn-pay:hover {
@@ -400,4 +433,128 @@ body {
   align-items: center;
   text-align: center;
   color: var(--text-muted);
+  gap: 1rem;
+}
+
+/* ==========================================================================
+   RESPONSIVIDADE (SEM SCROLL, LAYOUT ADAPTÁVEL)
+   ========================================================================== */
+
+/* Tablet (max-width: 768px) */
+@media (max-width: 768px) {
+  .cards-container {
+    padding: 2rem 1rem;
+  }
+
+  .cards-header h1 {
+    font-size: 1.75rem;
+  }
+
+  .cards-display {
+    gap: 1.5rem;
+  }
+
+  .bank-card {
+    max-width: 100%;
+    min-width: auto;
+  }
+
+  .card-bottom {
+    gap: 1rem;
+  }
+
+  .card-number {
+    font-size: 1.2rem;
+    letter-spacing: 2px;
+  }
+
+  .panel {
+    padding: 1.5rem;
+  }
+
+  .action-buttons {
+    gap: 0.6rem;
+  }
+
+  .action-item {
+    padding: 0.6rem;
+    font-size: 0.8rem;
+  }
+}
+
+/* Celular (max-width: 600px) */
+@media (max-width: 600px) {
+  .cards-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .invoice-amount {
+    font-size: 1.8rem;
+  }
+
+  .invoice-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+/* Celular pequeno (max-width: 480px) */
+@media (max-width: 480px) {
+  .cards-container {
+    padding: 1.5rem 0.75rem;
+  }
+
+  .cards-header h1 {
+    font-size: 1.5rem;
+  }
+
+  .cards-header p {
+    font-size: 0.9rem;
+  }
+
+  .bank-card {
+    padding: 1rem;
+    min-height: 220px;
+  }
+
+  .card-number {
+    font-size: 1rem;
+    letter-spacing: 1px;
+    margin-bottom: 1rem;
+  }
+
+  .card-bottom {
+    gap: 0.8rem;
+  }
+
+  .info-group span {
+    font-size: 0.75rem;
+  }
+
+  .panel {
+    padding: 1.2rem;
+  }
+
+  .action-buttons {
+    grid-template-columns: 1fr;
+  }
+
+  .invoice-amount {
+    font-size: 1.5rem;
+  }
+
+  .btn-pay {
+    padding: 0.8rem;
+    font-size: 0.85rem;
+  }
+}
+
+/* ==========================================================================
+   ACESSIBILIDADE E PREFERÊNCIAS DE MOVIMENTO
+   ========================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+    animation: none !important;
+  }
 }

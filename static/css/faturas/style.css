@@ -146,8 +146,8 @@ h1 {
   margin-bottom: 1.5rem;
   padding: 0.8rem;
   transition: var(--transition-default);
-  overflow-x: auto;
   box-shadow: var(--shadow-sm);
+  overflow: visible; /* Garante que nada seja cortado */
 }
 
 .fatura-container:hover {
@@ -157,13 +157,13 @@ h1 {
 }
 
 /* ==========================================================================
-   6. TABELA (RESPONSIVA)
+   6. TABELA (LAYOUT PADRÃO PARA DESKTOP)
    ========================================================================== */
 table {
   width: 100%;
   border-collapse: collapse;
   font-size: 0.95rem;
-  min-width: 700px;
+  background: var(--bg-panel);
 }
 
 th,
@@ -185,13 +185,13 @@ tr:hover td {
   background-color: var(--primary-light);
 }
 
-/* Larguras fixas (ajustáveis) */
+/* Larguras das colunas - apenas referência, não forçam scroll */
 th:nth-child(1) { width: 12%; }  /* Tipo */
 th:nth-child(2) { width: 12%; }  /* Valor */
 th:nth-child(3) { width: 12%; }  /* Status */
 th:nth-child(4) { width: 15%; }  /* Vencimento */
 th:nth-child(5) { width: 8%; }   /* Juros */
-th:nth-child(6) { width: 25%; }  /* Descrição */
+th:nth-child(6) { width: 31%; }  /* Descrição */
 th:nth-child(7) { width: 10%; }  /* Ação */
 
 /* ==========================================================================
@@ -274,7 +274,7 @@ th:nth-child(7) { width: 10%; }  /* Ação */
 }
 
 /* ==========================================================================
-   9. RESPONSIVIDADE
+   9. RESPONSIVIDADE (SEM SCROLL, LAYOUT EM CARDS COM RÓTULOS)
    ========================================================================== */
 
 /* Tablet (max-width: 768px) */
@@ -304,28 +304,90 @@ th:nth-child(7) { width: 10%; }  /* Ação */
     margin: 0 auto;
   }
 
-  .fatura-container {
-    overflow-x: auto;
-  }
-
-  table {
-    font-size: 0.85rem;
-    min-width: 600px;
-  }
-
+  /* Transforma a tabela em blocos */
+  table,
+  thead,
+  tbody,
   th,
-  td {
-    padding: 0.75rem;
+  td,
+  tr {
+    display: block;
   }
 
-  .btn-pagar {
-    padding: 0.4rem 0.8rem;
-    font-size: 0.8rem;
+  /* Esconde o cabeçalho original */
+  thead {
+    display: none;
+  }
+
+  /* Cada linha vira um card */
+  tr {
+    margin-bottom: 1rem;
+    padding: 1rem;
+    background: var(--bg-panel);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+  }
+
+  /* Cada célula se comporta como uma linha flex com rótulo à esquerda e valor à direita */
+  td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 0;
+    border-bottom: 1px dashed var(--border-light);
+    text-align: right;
+  }
+
+  td:last-child {
+    border-bottom: none;
+  }
+
+  /* Rótulos fixos baseados na posição da coluna */
+  td:nth-child(1)::before {
+    content: "Tipo:";
+  }
+  td:nth-child(2)::before {
+    content: "Valor:";
+  }
+  td:nth-child(3)::before {
+    content: "Status:";
+  }
+  td:nth-child(4)::before {
+    content: "Vencimento:";
+  }
+  td:nth-child(5)::before {
+    content: "Juros:";
+  }
+  td:nth-child(6)::before {
+    content: "Descrição:";
+  }
+  td:nth-child(7)::before {
+    content: "Ação:";
+  }
+
+  td::before {
+    font-weight: 600;
+    color: var(--text-muted);
+    text-align: left;
+    flex: 1;
+  }
+
+  td > * {
+    flex: 1;
+    text-align: right;
+  }
+
+  /* Ajuste específico para o botão (para não ocupar toda a largura) */
+  td .btn-pagar {
+    width: auto;
+    min-width: 100px;
+    display: inline-block;
   }
 }
 
-/* Celular pequeno (max-width: 360px) */
-@media (max-width: 360px) {
+/* Celular pequeno (max-width: 480px) */
+@media (max-width: 480px) {
   .faturas-wrapper {
     padding: 0.75rem 0.5rem;
   }
@@ -344,19 +406,31 @@ th:nth-child(7) { width: 10%; }  /* Ação */
     padding: 0.75rem;
   }
 
-  table {
-    font-size: 0.75rem;
-    min-width: 500px;
+  tr {
+    padding: 0.75rem;
   }
 
-  th,
   td {
-    padding: 0.5rem;
+    padding: 0.6rem 0;
+    font-size: 0.85rem;
+    flex-wrap: wrap; /* Permite que em telas muito pequenas o rótulo e valor fiquem em linhas separadas */
+    gap: 0.5rem;
   }
 
-  .btn-pagar {
-    padding: 0.3rem 0.6rem;
-    font-size: 0.7rem;
+  td::before {
+    flex: 0 0 auto; /* Rótulo não cresce */
+    width: 35%;
+  }
+
+  td > * {
+    flex: 1;
+    text-align: right;
+  }
+
+  td .btn-pagar {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.75rem;
+    min-width: 80px;
   }
 }
 
@@ -395,3 +469,4 @@ th:nth-child(7) { width: 10%; }  /* Ação */
     animation: none !important;
   }
 }
+

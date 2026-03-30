@@ -321,7 +321,7 @@ body {
 /* Celular pequeno (max-width: 360px) */
 @media (max-width: 360px) {
     .header-logo img {
-        height: 45px;
+        height: 100px;
     }
 
     .nav-minimal {
