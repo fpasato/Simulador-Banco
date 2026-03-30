@@ -1,6 +1,8 @@
 {% extends 'layouts/base_home.html' %}
+{% block title %}Investimentos - Lumo Digital{% endblock %}
 
 {% block content %}
+
 <link rel="stylesheet" href="{{ url_for('static', filename='css/investimentos/style.css') }}">
 <script>
     window.initialCarteira = {{ carteira | tojson | safe }};

@@ -1,4 +1,5 @@
 {% extends "layouts/base.html" %}
+{% block title %}Login - Lumo Digital{% endblock %}
 
 {% block content %}
 
@@ -26,7 +27,7 @@
             <img src="{{ url_for('static', filename='icons/login/old-big-key.png') }}" alt="" aria-hidden="true">
           </div>
           <input type="password" id="password" name="password" placeholder=" " required maxlength="8"
-                 inputmode="numeric" pattern="[0-9]{8}" title="Digite exatamente 8 números">
+            inputmode="numeric" pattern="[0-9]{8}" title="Digite exatamente 8 números">
           <label for="password">Senha</label>
         </div>
 

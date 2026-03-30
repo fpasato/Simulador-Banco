@@ -2,8 +2,9 @@
 <html>
 <head>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/global.css') }}?v={{ config.DEBUG }}">
-    <title>{% block title %}Meu Site{% endblock %}</title>
+    <link rel="icon" href="{{ url_for('static', filename='icons/favicon/favicon.ico') }}" type="image/x-icon">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Meu Site{% endblock %}</title>
 </head>
 
 <body>
