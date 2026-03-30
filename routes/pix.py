@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, session, redirect, url_for, request
 from utils.validators import get_db
-from utils.services.pix.functions import (
+from utils.services.banco.pix import (
     get_all_keys, 
     get_key_by_value,
     create_random_key, 

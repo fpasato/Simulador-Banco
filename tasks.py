@@ -1,46 +1,130 @@
-import time
-from utils.tasks_control import deve_executar_tarefa
-from utils.services.banco.investimento import atualizar_ativos, processar_investimentos_expirados
-from utils.services.banco.faturas import gerar_faturas_mensais_todos_usuarios, gerar_faturas_aleatorias_todos_usuarios, checa_juros
+import logging
+import signal
+import sys
+from apscheduler.schedulers.background import BackgroundScheduler
+from apscheduler.triggers.interval import IntervalTrigger
+from apscheduler.executors.pool import ThreadPoolExecutor
+from apscheduler.events import EVENT_JOB_ERROR
+from pytz import utc
+
+# Importe as funções das suas tarefas
+from utils.services.banco.investimento import (
+    atualizar_ativos,
+    processar_investimentos_expirados
+)
+from utils.services.banco.faturas import (
+    gerar_faturas_mensais_todos_usuarios,
+    gerar_faturas_aleatorias_todos_usuarios,
+    checa_juros
+)
 from utils.services.emprego.functions import pagar_salarios
 
+# Configuração básica de logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
+
 def main():
-    print("Worker iniciado. Aguardando ciclos...")
-    ultima_expiracao = time.time()
-    while True:
-        try:
-            # ========== Tarefas com intervalos fixos ==========
-            if deve_executar_tarefa("ativos", 5):
-                atualizar_ativos()
-                print("Atualização de ativos concluída")
+    # Define um executor com pool de threads limitado (máximo 5 threads)
+    executors = {
+        'default': ThreadPoolExecutor(5)
+    }
 
-            if deve_executar_tarefa("juros", 300):           # 5 minutos
-                checa_juros()
-                print("Juros aplicados")
+    # Cria o scheduler com timezone UTC e executor configurado
+    scheduler = BackgroundScheduler(
+        timezone=utc,
+        executors=executors
+    )
 
-            if deve_executar_tarefa("salarios", 3600):       # 1 hora
-                pagar_salarios()
-                print("Salários pagos")
+    # Adiciona as tarefas com parâmetros de segurança
+    jobs_config = [
+        # Tarefas curtas (segundos)
+        {
+            'func': atualizar_ativos,
+            'trigger': IntervalTrigger(seconds=5),
+            'id': 'ativos',
+            'max_instances': 1,
+            'coalesce': True,
+            'misfire_grace_time': 10,   # evita execução atrasada por mais de 10s
+            'replace_existing': True
+        },
+        {
+            'func': processar_investimentos_expirados,
+            'trigger': IntervalTrigger(seconds=10),
+            'id': 'investimentos_expirados',
+            'max_instances': 1,
+            'coalesce': True,
+            'misfire_grace_time': 15,
+            'replace_existing': True
+        },
+        # Tarefa de juros (5 minutos)
+        {
+            'func': checa_juros,
+            'trigger': IntervalTrigger(seconds=300),
+            'id': 'juros',
+            'max_instances': 1,
+            'coalesce': True,
+            'misfire_grace_time': 30,
+            'replace_existing': True
+        },
+        # Tarefas de 1 hora – com jitter para espalhar a execução
+        {
+            'func': pagar_salarios,
+            'trigger': IntervalTrigger(seconds=3600, jitter=60),
+            'id': 'salarios',
+            'max_instances': 1,
+            'coalesce': True,
+            'misfire_grace_time': 120,
+            'replace_existing': True
+        },
+        {
+            'func': gerar_faturas_mensais_todos_usuarios,
+            'trigger': IntervalTrigger(seconds=3600, jitter=60),
+            'id': 'faturas_mensais',
+            'max_instances': 1,
+            'coalesce': True,
+            'misfire_grace_time': 120,
+            'replace_existing': True
+        },
+        {
+            'func': gerar_faturas_aleatorias_todos_usuarios,
+            'trigger': IntervalTrigger(seconds=3600, jitter=60),
+            'id': 'faturas_aleatorias',
+            'max_instances': 1,
+            'coalesce': True,
+            'misfire_grace_time': 120,
+            'replace_existing': True
+        }
+    ]
 
-            if deve_executar_tarefa("faturas_mensais", 3600): # 1 hora
-                gerar_faturas_mensais_todos_usuarios()
-                print("Faturas mensais geradas")
+    # Função de callback para erros nos jobs
+    def job_error_listener(event):
+        logger.error(f"Job '{event.job_id}' falhou na execução. Exceção: {event.exception}")
 
-            if deve_executar_tarefa("faturas_aleatorias", 3600): # 1 hora
-                gerar_faturas_aleatorias_todos_usuarios()
-                print("Faturas aleatórias geradas")
+    # Adiciona o listener de erros
+    scheduler.add_listener(job_error_listener, EVENT_JOB_ERROR)
 
-            # ========== Tarefa de expiração (intervalo de 10s) ==========
-            agora = time.time()
-            if agora - ultima_expiracao >= 10:
-                processar_investimentos_expirados()
-                ultima_expiracao = agora
-                print("Investimentos expirados processados")
+    # Agenda todos os jobs
+    for job in jobs_config:
+        scheduler.add_job(**job)
+        logger.info(f"Job '{job['id']}' agendado com intervalo {job['trigger']}")
 
-        except Exception as e:
-            print(f"[ERRO] Falha no ciclo do worker: {e}")
+    scheduler.start()
+    logger.info("Scheduler iniciado. Aguardando execuções...")
 
-        time.sleep(1)   # Aguarda 1 segundo antes de repetir
+    # Tratamento de sinais para desligamento gracioso
+    def signal_handler(signum, frame):
+        logger.info("Sinal recebido, desligando scheduler...")
+        scheduler.shutdown()
+        sys.exit(0)
+
+    signal.signal(signal.SIGTERM, signal_handler)
+    signal.signal(signal.SIGINT, signal_handler)
+
+    # Bloqueia até receber um sinal
+    signal.pause()
 
 if __name__ == "__main__":
     main()

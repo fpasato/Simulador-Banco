@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, redirect, session, request
-from utils.services.cards.functions import create_card, get_card, calcular_fatura
+from utils.services.banco.cartoes import create_card, get_card, calcular_fatura
 from utils.validators import check_session
 
 cards_bp = Blueprint("cards", __name__, url_prefix="/cards")

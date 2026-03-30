@@ -1,6 +1,5 @@
 from flask import Blueprint, session, redirect, render_template
 from utils.validators import check_session
-from utils.services.versaldo.functions import get_balance
 from utils.validators import get_account_by_number
 
 
