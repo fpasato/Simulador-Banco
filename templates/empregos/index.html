@@ -1,8 +1,14 @@
-{% block title %}Salário - Lumo Digital{% endblock %}
-{% block content %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/emprego/style.css') }}">
-
-<main class="main-container">
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="{{ url_for('static', filename='icons/favicon/favicon.ico') }}">
+    <title>Salário - Lumo Digital</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/emprego/style.css') }}">
+</head>
+<body>
+    <main class="main-container">
     <header class="intro-header">
         <h1>Identidade Lumo</h1>
         <p>Este formulário ajudará a identificar o ambiente de trabalho e a faixa salarial ideal para o seu perfil.</p>
@@ -106,4 +112,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 });
 </script>
-{% endblock %}
+    </main>
+</body>
+</html>
