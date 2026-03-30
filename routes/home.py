@@ -79,7 +79,6 @@ def verificar_salario():
         return jsonify({"novo": False})
 
     except Exception as e:
-        print("ERRO verificar_salario:", e)
         return jsonify({"novo": False})
 
 

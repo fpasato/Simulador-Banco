@@ -22,8 +22,6 @@ def emprestimos():
     if valor and parcelas:
         resultado = simularEmprestimo(valor, parcelas)
     
-    print(resultado)
-    
     if valor and parcelas:
         return render_template("emprestimos/index.html", resultado=resultado)
     

@@ -119,7 +119,6 @@ def login():
                     novo_saldo = conta_result[2] + 2000
                     bonus_message = "Parabéns! Você ganhou R$ 2.000 de bônus de primeiro acesso!"
                 except Exception as e:
-                    print(f"Erro ao conceder bônus: {e}")
                     novo_saldo = conta_result[2]
             else:
                 novo_saldo = conta_result[2]

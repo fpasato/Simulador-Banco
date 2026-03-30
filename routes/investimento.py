@@ -212,7 +212,6 @@ def atualizar_precos():
             'server_time': server_time
         })
     except Exception as e:
-        print(f"Erro na API de preços: {e}")
         return jsonify({'error': str(e)}), 500
 
 def _obter_detalhes_item(conta_id, tipo, id_param, investimento_id_param):
