@@ -2,15 +2,18 @@
   const container = document.getElementById('adsGrid');
   const indicatorsContainer = document.getElementById('carouselIndicators');
   const video = document.getElementById('adVideo');
+  const video2 = document.getElementById('adVideo2');
   const soundBtn = document.getElementById('soundBtn');
+  const soundBtn2 = document.getElementById('soundBtn2');
   const items = container.children;
   let autoScrollTimeout; // Mudamos de Interval para Timeout para controle dinâmico
   let isHovering = false;
 
-  // IMPORTANTE: Remover o atributo 'loop' do vídeo no HTML para o evento 'ended' funcionar
+  // IMPORTANTE: Remover o atributo 'loop' dos vídeos no HTML para o evento 'ended' funcionar
   if (video) video.loop = false;
+  if (video2) video2.loop = false;
 
-  // Controle de Som
+  // Controle de Som - Primeiro vídeo
   if (video && soundBtn) {
     const toggleMute = () => {
       video.muted = !video.muted;
@@ -18,6 +21,16 @@
     };
     soundBtn.addEventListener('click', (e) => { e.stopPropagation(); toggleMute(); });
     video.addEventListener('click', toggleMute);
+  }
+
+  // Controle de Som - Segundo vídeo
+  if (video2 && soundBtn2) {
+    const toggleMute2 = () => {
+      video2.muted = !video2.muted;
+      soundBtn2.innerHTML = video2.muted ? '🔇' : '🔊';
+    };
+    soundBtn2.addEventListener('click', (e) => { e.stopPropagation(); toggleMute2(); });
+    video2.addEventListener('click', toggleMute2);
   }
 
   // Indicadores
@@ -62,18 +75,29 @@
     const index = Math.round(container.scrollLeft / container.offsetWidth);
     const currentItem = items[index];
 
-    // Verifica se o slide atual contém o vídeo
+    // Verifica se o slide atual contém o primeiro vídeo
     if (currentItem && currentItem.contains(video)) {
       video.play();
       // Não criamos um Timeout aqui. O vídeo chamará o próximo slide ao terminar.
       video.onended = () => {
-
         if (!video.muted) { // se o vídeo não estiver mutado
           video.muted = true;  // muta o vídeo
         }
         window.sideScroll('right'); // passa para o próximo slide
       };
-    } else {
+    } 
+    // Verifica se o slide atual contém o segundo vídeo
+    else if (currentItem && currentItem.contains(video2)) {
+      video2.play();
+      // Não criamos um Timeout aqui. O vídeo chamará o próximo slide ao terminar.
+      video2.onended = () => {
+        if (!video2.muted) { // se o vídeo não estiver mutado
+          video2.muted = true;  // muta o vídeo
+        }
+        window.sideScroll('right'); // passa para o próximo slide
+      };
+    } 
+    else {
       // Se for imagem, passa em 5 segundos
       autoScrollTimeout = setTimeout(() => {
         window.sideScroll('right');
@@ -83,7 +107,8 @@
 
   function resetAutoScroll() {
     clearTimeout(autoScrollTimeout);
-    if (video) video.onended = null; // Limpa o evento anterior
+    if (video) video.onended = null; // Limpa o evento do primeiro vídeo
+    if (video2) video2.onended = null; // Limpa o evento do segundo vídeo
     manageAutoRotation();
   }
 
