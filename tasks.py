@@ -19,7 +19,7 @@ from utils.services.banco.faturas import (
 )
 from utils.services.emprego.functions import pagar_salarios
 
-# Configuração básica de logging
+
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
@@ -72,7 +72,7 @@ def main():
         # Tarefas de 1 hora – com jitter para espalhar a execução
         {
             'func': pagar_salarios,
-            'trigger': IntervalTrigger(seconds=3600, jitter=60),
+            'trigger': IntervalTrigger(seconds=60, jitter=60),
             'id': 'salarios',
             'max_instances': 1,
             'coalesce': True,
@@ -81,7 +81,7 @@ def main():
         },
         {
             'func': gerar_faturas_mensais_todos_usuarios,
-            'trigger': IntervalTrigger(seconds=3600, jitter=60),
+            'trigger': IntervalTrigger(seconds=60, jitter=60),
             'id': 'faturas_mensais',
             'max_instances': 1,
             'coalesce': True,
@@ -90,7 +90,7 @@ def main():
         },
         {
             'func': gerar_faturas_aleatorias_todos_usuarios,
-            'trigger': IntervalTrigger(seconds=3600, jitter=60),
+            'trigger': IntervalTrigger(seconds=60, jitter=60),
             'id': 'faturas_aleatorias',
             'max_instances': 1,
             'coalesce': True,
@@ -112,7 +112,13 @@ def main():
         logger.info(f"Job '{job['id']}' agendado com intervalo {job['trigger']}")
 
     scheduler.start()
-    logger.info("Scheduler iniciado. Aguardando execuções...")
+
+    try:
+        # Mantém rodando sem consumir CPU
+        import threading
+        threading.Event().wait()
+    except (KeyboardInterrupt, SystemExit):
+        scheduler.shutdown()
 
     # Tratamento de sinais para desligamento gracioso
     def signal_handler(signum, frame):

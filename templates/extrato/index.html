@@ -2,58 +2,160 @@
 {% block title %}Extrato - Lumo Digital{% endblock %}
 
 {% block content %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/extrato/style.css') }}">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/extrato/style.css') }}">
 
-<main>
-    <h1>Extrato de Transações</h1>
+<div class="extrato-container">
+  <div class="header-section">
+    <h1><i class="fas fa-chart-line"></i> Extrato de Transações</h1>
+    <div class="saldo-card">
+      <i class="fas fa-wallet"></i>
+      <span>Saldo atual:</span>
+      <span class="saldo-valor" id="saldo-valor">R$ {{ session['user_info']['saldo']|round(2) }}</span>
+    </div>
+  </div>
 
-    {% if transacoes %}
-    <div class="table-responsive">
-        <table class="table">
-            <thead class="table-dark">
-                <tr>
-                    <th>ID</th>
-                    <th>Conta</th>
-                    <th>Valor (R$)</th>
-                    <th>Tipo</th>
-                    <th>Descrição</th>
-                    <th>Data</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for trans in transacoes %}
-                <tr>
-                    <td>{{ trans.id }}</td>
-                    <td>{{ trans.numero_conta }}</td>  <!-- ← agora exibe o número da conta -->
-                    <td class="{% if trans.tipo == 'deposito' %}text-success{% elif trans.tipo == 'debito' %}text-danger{% endif %}">
-                        {% if trans.tipo == 'deposito' %}
-                            + R$ {{ "%.2f"|format(trans.valor) }}
-                        {% elif trans.tipo == 'debito' %}
-                            - R$ {{ "%.2f"|format(trans.valor) }}
-                        {% else %}
-                            R$ {{ "%.2f"|format(trans.valor) }}
-                        {% endif %}
-                    </td>
-                    <td>
-                        <span class="badge 
-                            {% if trans.tipo == 'deposito' %}bg-success
-                            {% elif trans.tipo == 'debito' %}bg-danger
-                            {% else %}bg-info{% endif %}">
-                            {{ trans.tipo|upper }}
-                        </span>
-                    </td>
-                    <td>{{ trans.descricao if trans.descricao else '—' }}</td>
-                    <td>{{ trans.data|replace('T', ' ') }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+  <!-- Filtros -->
+  <div class="filtros">
+    <div class="filtro-data">
+      <label><i class="fas fa-calendar-alt"></i> De:</label>
+      <input type="date" id="data-inicio" class="data-input">
+    </div>
+    <div class="filtro-data">
+      <label><i class="fas fa-calendar-alt"></i> Até:</label>
+      <input type="date" id="data-fim" class="data-input">
+    </div>
+    <div class="filtro-tipo">
+      <label><i class="fas fa-filter"></i> Tipo:</label>
+      <select id="tipo-filtro" class="tipo-select">
+        <option value="all">Todos</option>
+        <option value="deposito">Depósito</option>
+        <option value="debito">Débito</option>
+      </select>
+    </div>
+    <button class="btn-limpar" id="limpar-filtros"><i class="fas fa-undo-alt"></i> Limpar</button>
+  </div>
+
+  <!-- Contador de resultados -->
+  <div class="resultados-info" id="resultados-info">
+    <span id="total-transacoes">0</span> transações encontradas
+  </div>
+
+  <!-- Lista de transações (cards) -->
+  <div class="transacoes-grid" id="transacoes-grid">
+    {% for trans in transacoes %}
+    <div class="transacao-card" 
+         data-tipo="{{ trans.tipo }}" 
+         data-data="{{ trans.data.split('T')[0] }}"
+         data-valor="{{ trans.valor }}">
+      <div class="card-icon">
+        <i class="fas {% if trans.tipo == 'deposito' %}fa-arrow-down{% else %}fa-arrow-up{% endif %}"></i>
+      </div>
+      <div class="card-content">
+        <div class="card-header-card">
+          <span class="tipo-badge {{ trans.tipo }}">
+            {{ trans.tipo|upper }}
+          </span>
+          <span class="data">{{ trans.data.split('T')[0] | replace('-', '/') }}</span>
+        </div>
+        <div class="descricao">
+          {{ trans.descricao if trans.descricao else 'Sem descrição' }}
+        </div>
+        <div class="valor {% if trans.tipo == 'deposito' %}positivo{% else %}negativo{% endif %}">
+          {% if trans.tipo == 'deposito' %}
+            + R$ {{ "%.2f"|format(trans.valor) }}
+          {% elif trans.tipo == 'debito' %}
+            - R$ {{ "%.2f"|format(trans.valor) }}
+          {% else %}
+            R$ {{ "%.2f"|format(trans.valor) }}
+          {% endif %}
+        </div>
+        <div class="conta">Conta: {{ trans.numero_conta }}</div>
+      </div>
     </div>
     {% else %}
-    <div class="alert alert-warning" role="alert">
-        Nenhuma transação encontrada.
+    <div class="empty-state">
+      <i class="fas fa-inbox"></i>
+      <p>Nenhuma transação encontrada.</p>
     </div>
-    {% endif %}
-</main>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- Toast (opcional) -->
+<div id="toast" class="toast-notification"></div>
+
+<script>
+  // Filtro por data e tipo (JavaScript puro)
+  const transacoesCards = document.querySelectorAll('.transacao-card');
+  const dataInicio = document.getElementById('data-inicio');
+  const dataFim = document.getElementById('data-fim');
+  const tipoFiltro = document.getElementById('tipo-filtro');
+  const limparBtn = document.getElementById('limpar-filtros');
+  const totalSpan = document.getElementById('total-transacoes');
+
+  function aplicarFiltros() {
+    let inicio = dataInicio.value ? new Date(dataInicio.value) : null;
+    let fim = dataFim.value ? new Date(dataFim.value) : null;
+    let tipo = tipoFiltro.value;
+    let visiveis = 0;
+
+    transacoesCards.forEach(card => {
+      let dataCardStr = card.getAttribute('data-data');
+      let dataCard = new Date(dataCardStr);
+      let tipoCard = card.getAttribute('data-tipo');
+      let mostrar = true;
+
+      if (inicio && dataCard < inicio) mostrar = false;
+      if (fim && dataCard > fim) mostrar = false;
+      if (tipo !== 'all' && tipoCard !== tipo) mostrar = false;
+
+      if (mostrar) {
+        card.style.display = '';
+        visiveis++;
+      } else {
+        card.style.display = 'none';
+      }
+    });
+
+    totalSpan.textContent = visiveis;
+    if (visiveis === 0 && transacoesCards.length > 0) {
+      // Se não há cards visíveis mas existem cards, mostra uma mensagem no lugar
+      const emptyDiv = document.querySelector('.empty-state');
+      if (emptyDiv) emptyDiv.style.display = 'none';
+      // Se não houver empty-state, cria uma mensagem temporária (opcional)
+    } else if (visiveis > 0) {
+      const emptyDiv = document.querySelector('.empty-state');
+      if (emptyDiv) emptyDiv.style.display = 'none';
+    } else if (transacoesCards.length === 0) {
+      // Nenhum card, mantém empty-state (já está no HTML)
+    }
+  }
+
+  function limparFiltros() {
+    dataInicio.value = '';
+    dataFim.value = '';
+    tipoFiltro.value = 'all';
+    aplicarFiltros();
+  }
+
+  dataInicio.addEventListener('change', aplicarFiltros);
+  dataFim.addEventListener('change', aplicarFiltros);
+  tipoFiltro.addEventListener('change', aplicarFiltros);
+  limparBtn.addEventListener('click', limparFiltros);
+
+  // Inicializar contagem
+  aplicarFiltros();
+
+  // Pequeno toast helper (opcional)
+  function showToast(message, isError = false) {
+    const toast = document.getElementById('toast');
+    if (!toast) return;
+    toast.textContent = message;
+    toast.style.background = isError ? '#b91c1c' : '#10b981';
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 3000);
+  }
+</script>
 {% endblock %}

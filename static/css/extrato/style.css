@@ -1,8 +1,4 @@
-/* ==========================================================================
-   EXTRATO - TEMA INTEGRADO COM VARIÁVEIS GLOBAIS
-   ========================================================================== */
-
-/* ===== VARIÁVEIS GLOBAIS (sobrescritas pelos temas) ===== */
+/* ===== VARIÁVEIS GLOBAIS (herdadas do tema) ===== */
 :root {
   --transition-default: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   --radius-card: 20px;
@@ -12,7 +8,7 @@
   --shadow-md: 0 20px 25px -5px rgb(0 0 0 / 0.05), 0 8px 10px -6px rgb(0 0 0 / 0.05);
 }
 
-/* ===== TEMA CLARO (padrão) ===== */
+/* ===== TEMA CLARO ===== */
 body.lighttheme {
   --bg-body: #FEFAFE;
   --bg-panel: #FFFFFF;
@@ -20,23 +16,17 @@ body.lighttheme {
   --accent-hover: #3429ff;
   --text-main: #111827;
   --text-muted: #6B7280;
-  --border-light: #6f69e0;
-  --border-medium: #5A4FE8;
+  --border-light: #e5e7eb;
+  --border-medium: #d1d5db;
   --success: #22C55E;
   --danger: #EF4444;
   --danger-hover: #DC2626;
   --primary-light: #EEF2FF;
   --img-color: #6366F1;
-  --table-header-bg: #1e293b;     /* cabeçalho escuro no tema claro */
-  --table-header-text: #ffffff;
-  --table-stripe-odd: rgba(0, 0, 0, 0.02);
-  --table-stripe-even: rgba(0, 0, 0, 0.04);
-  --badge-success-bg: #dcfce7;
-  --badge-success-text: #166534;
-  --badge-danger-bg: #fee2e2;
-  --badge-danger-text: #991b1b;
-  --badge-info-bg: #dbeafe;
-  --badge-info-text: #1e40af;
+  --deposito-bg: #e8f5e9;
+  --debito-bg: #ffebee;
+  --deposito-text: #2e7d32;
+  --debito-text: #c62828;
 }
 
 /* ===== TEMA ESCURO ===== */
@@ -46,274 +36,342 @@ body.darktheme {
   --accent: #4cecba;
   --accent-hover: #4F46E5;
   --text-main: #F9FAFB;
-  --text-muted: #7f62ff;
-  --border-light: #7f62ff;
-  --border-medium: #7f62ff;
+  --text-muted: #9ca3af;
+  --border-light: #4b5563;
+  --border-medium: #6b7280;
   --success: #58d5a1;
   --danger: #EF4444;
   --danger-hover: #F87171;
   --primary-light: rgba(129, 140, 248, 0.15);
   --img-color: brightness(0) invert(1);
-  --table-header-bg: #2d2d2d;
-  --table-header-text: #f9fafb;
-  --table-stripe-odd: rgba(255, 255, 255, 0.03);
-  --table-stripe-even: rgba(255, 255, 255, 0.06);
-  --badge-success-bg: rgba(88, 213, 161, 0.2);
-  --badge-success-text: #58d5a1;
-  --badge-danger-bg: rgba(239, 68, 68, 0.2);
-  --badge-danger-text: #f87171;
-  --badge-info-bg: rgba(129, 140, 248, 0.2);
-  --badge-info-text: #818cf8;
+  --deposito-bg: rgba(88, 213, 161, 0.2);
+  --debito-bg: rgba(239, 68, 68, 0.2);
+  --deposito-text: #58d5a1;
+  --debito-text: #f87171;
 }
 
-/* ==========================================================================
-   1. RESET E BASE
-   ========================================================================== */
-/* ==========================================================================
-   1. RESET E BASE
-   ========================================================================== */
+/* ===== ESTILOS GERAIS ===== */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-}
-
-html {
-  height: 100%;
+  font-family: "Inter", sans-serif;
 }
 
 body {
-  min-height: 100%;
-  display: flex;
-  flex-direction: column;
-  background-color: var(--bg-body);
-  margin: 0;
-  padding: 0;
+  background: var(--bg-body);
+  min-height: 100vh;
 }
 
-main {
-  flex: 1;
-  width: 100%;
+.extrato-container {
   max-width: 1400px;
   margin: 2rem auto;
   padding: 0 1.5rem;
 }
 
-/* ==========================================================================
-   3. TÍTULO
-   ========================================================================== */
+/* Cabeçalho */
+.header-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 2rem;
+}
+
 h1 {
   font-size: clamp(1.5rem, 4vw, 2rem);
   font-weight: 700;
-  margin-bottom: 1.5rem;
   color: var(--text-main);
 }
 
-/* ==========================================================================
-   4. CONTAINER DA TABELA (CARD)
-   ========================================================================== */
-.table-responsive {
+h1 i {
+  margin-right: 0.5rem;
+  color: var(--accent);
+}
+
+.saldo-card {
   background: var(--bg-panel);
-  border-radius: var(--radius-card);
-  box-shadow: var(--shadow-md);
-  overflow-x: auto;
+  padding: 0.8rem 1.8rem;
+  border-radius: 2rem;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.saldo-card i {
+  font-size: 1.8rem;
+  color: var(--success);
+}
+
+.saldo-card span {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.saldo-card .saldo-valor {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+/* Filtros */
+.filtros {
+  background: var(--bg-panel);
+  border-radius: 2rem;
+  padding: 1rem 1.5rem;
+  margin-bottom: 1.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  align-items: flex-end;
+  box-shadow: var(--shadow-sm);
   border: 1px solid var(--border-light);
+}
+
+.filtro-data,
+.filtro-tipo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.filtro-data label,
+.filtro-tipo label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.data-input,
+.tipo-select {
+  background: var(--bg-body);
+  border: 1px solid var(--border-light);
+  border-radius: 2rem;
+  padding: 0.6rem 1rem;
+  font-size: 0.9rem;
+  color: var(--text-main);
+  outline: none;
+  transition: var(--transition-default);
+  cursor: pointer;
+}
+
+.data-input:focus,
+.tipo-select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--primary-light);
+}
+
+.btn-limpar {
+  background: transparent;
+  border: 1px solid var(--border-medium);
+  border-radius: 2rem;
+  padding: 0.6rem 1.2rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  cursor: pointer;
   transition: var(--transition-default);
 }
 
-.table-responsive:hover {
-  box-shadow: var(--shadow-md);
-  transform: translateY(-2px);
-}
-
-/* ==========================================================================
-   5. TABELA
-   ========================================================================== */
-.table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.95rem;
-  min-width: 600px;
-}
-
-/* Cabeçalho */
-.table thead th {
-  background: var(--table-header-bg) !important;
-  color: var(--table-header-text) !important;
-  font-weight: 600;
-  font-size: 0.9rem;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  padding: 1rem;
-  border: none !important;
-  white-space: nowrap;
-}
-
-/* Células */
-.table tbody td {
-  padding: 1rem;
-  border-bottom: 1px solid var(--border-light);
-  vertical-align: middle;
-  color: var(--text-main);
-  transition: background-color 0.2s ease;
-}
-
-/* Zebra com contraste baseado no tema */
-.table tbody tr:nth-child(odd) td {
-  background-color: var(--table-stripe-odd) !important;
-}
-.table tbody tr:nth-child(even) td {
-  background-color: var(--table-stripe-even) !important;
-}
-
-/* Hover suave */
-.table tbody tr:hover td {
-  background-color: var(--primary-light) !important;
-  cursor: default;
-}
-
-/* Remove borda da última linha */
-.table tbody tr:last-child td {
-  border-bottom: none;
-}
-
-/* ==========================================================================
-   6. ESTILOS DE VALORES (DEPÓSITO/DÉBITO)
-   ========================================================================== */
-.text-success {
-  color: var(--success) !important;
-  font-weight: 600;
-}
-.text-danger {
-  color: var(--danger) !important;
-  font-weight: 600;
-}
-
-/* ==========================================================================
-   7. BADGES (TIPO DE TRANSAÇÃO)
-   ========================================================================== */
-.badge {
-  display: inline-block;
-  padding: 0.25rem 0.75rem;
-  border-radius: 999px;
-  font-size: 0.7rem;
-  font-weight: 700;
-  text-align: center;
-  white-space: nowrap;
-}
-
-.bg-success {
-  background: var(--badge-success-bg) !important;
-  color: var(--badge-success-text) !important;
-}
-.bg-danger {
-  background: var(--badge-danger-bg) !important;
-  color: var(--badge-danger-text) !important;
-}
-.bg-info {
-  background: var(--badge-info-bg) !important;
-  color: var(--badge-info-text) !important;
-}
-
-/* ==========================================================================
-   8. ALERTA (QUANDO NÃO HÁ TRANSAÇÕES)
-   ========================================================================== */
-.alert-warning {
+.btn-limpar:hover {
   background: var(--primary-light);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* Resultados info */
+.resultados-info {
+  text-align: right;
+  margin-bottom: 1rem;
+  font-size: 0.85rem;
   color: var(--text-muted);
-  padding: 2rem;
-  border-radius: var(--radius-md);
-  text-align: center;
-  font-weight: 500;
+}
+
+.resultados-info span {
+  font-weight: 700;
+  color: var(--accent);
+  font-size: 1rem;
+}
+
+/* Grid de cards */
+.transacoes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.5rem;
+}
+
+/* Card individual */
+.transacao-card {
+  background: var(--bg-panel);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition-default);
+  display: flex;
+  overflow: hidden;
   border: 1px solid var(--border-light);
 }
 
-/* ==========================================================================
-   9. RESPONSIVIDADE
-   ========================================================================== */
+.transacao-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
+}
 
-/* Tablet (max-width: 768px) */
+.card-icon {
+  background: var(--primary-light);
+  width: 70px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  color: var(--accent);
+}
+
+.card-content {
+  flex: 1;
+  padding: 1rem 1.2rem;
+}
+
+.card-header-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.tipo-badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.25rem 0.75rem;
+  border-radius: 2rem;
+  text-transform: uppercase;
+}
+
+.tipo-badge.deposito {
+  background: var(--deposito-bg);
+  color: var(--deposito-text);
+}
+
+.tipo-badge.debito {
+  background: var(--debito-bg);
+  color: var(--debito-text);
+}
+
+.data {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.descricao {
+  font-size: 0.9rem;
+  color: var(--text-main);
+  margin-bottom: 0.75rem;
+  word-break: break-word;
+}
+
+.valor {
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.valor.positivo {
+  color: var(--success);
+}
+
+.valor.negativo {
+  color: var(--danger);
+}
+
+.conta {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  border-top: 1px dashed var(--border-light);
+  padding-top: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+/* Estado vazio */
+.empty-state {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 3rem;
+  background: var(--bg-panel);
+  border-radius: var(--radius-card);
+  color: var(--text-muted);
+}
+
+.empty-state i {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  color: var(--text-muted);
+}
+
+/* Toast (opcional) */
+.toast-notification {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  background: var(--bg-panel);
+  color: var(--text-main);
+  padding: 0.8rem 1.5rem;
+  border-radius: 2rem;
+  font-weight: 500;
+  z-index: 1000;
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border-light);
+}
+
+.toast-notification.show {
+  opacity: 1;
+}
+
+/* Responsividade */
 @media (max-width: 768px) {
-  main {
-    margin: 1rem auto;
+  .extrato-container {
     padding: 0 1rem;
   }
 
-  h1 {
-    margin-bottom: 1rem;
+  .filtros {
+    flex-direction: column;
+    align-items: stretch;
   }
 
-  .table {
-    font-size: 0.85rem;
-    min-width: 550px;
+  .filtro-data, .filtro-tipo {
+    width: 100%;
   }
 
-  .table thead th,
-  .table tbody td {
-    padding: 0.75rem;
+  .btn-limpar {
+    align-self: flex-start;
   }
 
-  .badge {
-    font-size: 0.65rem;
-    padding: 0.2rem 0.6rem;
-  }
-}
-
-/* Celular pequeno (max-width: 360px) */
-@media (max-width: 360px) {
-  main {
-    padding: 0 0.75rem;
+  .transacoes-grid {
+    grid-template-columns: 1fr;
   }
 
-  .table {
-    font-size: 0.75rem;
-    min-width: 500px;
+  .header-section {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
   }
 
-  .table thead th,
-  .table tbody td {
-    padding: 0.5rem;
-  }
-
-  .badge {
-    font-size: 0.6rem;
-    padding: 0.15rem 0.5rem;
-  }
-
-  .alert-warning {
-    padding: 1rem;
-    font-size: 0.85rem;
+  .saldo-card {
+    align-self: stretch;
+    justify-content: space-between;
   }
 }
 
-/* Ajuste para telas muito grandes (min-width: 1400px) */
 @media (min-width: 1400px) {
-  main {
+  .extrato-container {
     max-width: 1400px;
-    padding: 0 2rem;
   }
 
-  .table {
-    font-size: 1rem;
-  }
-
-  .table thead th,
-  .table tbody td {
-    padding: 1.25rem;
-  }
-
-  .badge {
-    font-size: 0.75rem;
-    padding: 0.35rem 1rem;
-  }
-}
-
-/* ==========================================================================
-   10. ACESSIBILIDADE
-   ========================================================================== */
-@media (prefers-reduced-motion: reduce) {
-  * {
-    transition: none !important;
-    animation: none !important;
+  .transacoes-grid {
+    grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
   }
 }

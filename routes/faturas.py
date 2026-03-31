@@ -1,7 +1,7 @@
 
 from flask import Blueprint, render_template, request, redirect, url_for, session, jsonify
 from utils.validators import check_session, get_db
-from utils.services.banco.faturas import get_faturas, pagar_fatura, registrar_transacao, deletar_fatura, get_valor_fatura
+from utils.services.banco.faturas import get_faturas, pagar_fatura, registrar_transacao, deletar_fatura, get_valor_fatura, limitar_faturas_pagas, limitar_faturas_pendentes
 
 faturas_bp = Blueprint("faturas", __name__, url_prefix="/faturas")
 
@@ -65,8 +65,10 @@ def pagar_todas_faturas():
         # 5. Marca todas como pagas e registra transações
         for fatura_id, valor in faturas_pendentes:
             pagar_fatura(fatura_id, conn=conn)
-            registrar_transacao(conta_id, valor, conn=conn)
-            deletar_fatura(fatura_id, conn=conn)
+            registrar_transacao(conta_id, valor, 'debito', 'Pagamento de fatura', conn=conn)
+            # mantém a fatura no banco como 'pago'
+            # depois, aplica o limite de faturas pagas
+            limitar_faturas_pagas(conta_id, conn=conn)
         
         # 6. Commita tudo
         conn.commit()
@@ -118,8 +120,10 @@ def processar_pagamento():
 
         # Chama suas funções passando a conexão aberta
         pagar_fatura(fatura_id, conn=conn)
-        registrar_transacao(conta_id, valor_fatura, conn=conn)
+        registrar_transacao(conta_id, valor_fatura, 'debito', 'Pagamento de fatura', conn=conn)
         deletar_fatura(fatura_id, conn=conn)
+
+        limitar_faturas_pagas(conta_id, conn=conn) 
 
         # 3. Commita TUDO de uma vez só no final
         conn.commit()

@@ -59,14 +59,14 @@ def calcula_pontos(request):
     # classificação pela pontuação total (máximo 18 pontos)
     if pontos_total >= 13:  # 5 ou 6 respostas com valor 2+ = Perfil Lumo
         perfil = "Perfil Lumo"
-        salario = random.randint(4000, 5100)
+        salario = random.randint(2600, 3100)
         
     elif pontos_total >= 8:  # 4 ou 5 respostas com valor 2 = Quase Lumo  
         perfil = "Quase Lumo"
-        salario = random.randint(2000, 3990)
+        salario = random.randint(1850, 2500)
         
     else:  # Menos de 8 pontos = Fora do padrão Lumo
         perfil = "Fora do padrão Lumo"
-        salario = random.randint(1700, 1990)
+        salario = random.randint(1700, 1800)
     
     return perfil, salario, pontos_total

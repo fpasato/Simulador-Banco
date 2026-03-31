@@ -183,6 +183,8 @@ _notificacoes_pendentes = {}
 _notificacoes_lock = Lock()
 _atualizar_lock = Lock()
 
+
+
 def garantir_tabela_variacoes(conn):
     conn.execute('''
         CREATE TABLE IF NOT EXISTS variacoes_diarias (
@@ -193,12 +195,14 @@ def garantir_tabela_variacoes(conn):
     ''')
     conn.commit()
 
+
 def remover_ativo_para_todos(ativo_id, conn):
+    
     """Remove o ativo das carteiras e desativa-o permanentemente."""
     conn.execute("DELETE FROM carteira_investimentos WHERE investimento_id = ?", (ativo_id,))
     conn.execute("DELETE FROM investimentos_temporarios WHERE investimento_id = ?", (ativo_id,))
-    conn.execute("UPDATE investimentos SET ativo = 0 WHERE id = ?", (ativo_id,))  # <- agora desativa
-
+    conn.execute("UPDATE investimentos SET ativo = 0 WHERE id = ?", (ativo_id,))  
+    
 def atualizar_ativos():
     with _atualizar_lock:
         conn = get_db()
@@ -219,7 +223,7 @@ def atualizar_ativos():
             drift_por_tipo = {
                 'acao': 0.02,
                 'fundo': 0.01,
-                'cripto': 0.15,        # aumentado
+                'cripto': 0.15,        
                 'renda_fixa': 0.005,
                 'cota': 0.01
             }
@@ -235,13 +239,13 @@ def atualizar_ativos():
             volatilidade_base = {
                 'baixo': 0.03,
                 'medio': 0.15,
-                'alto': 0.80           # aumentado
+                'alto': 0.80           
             }
 
             volatilidade_mult = {
                 'acao': 1.0,
                 'fundo': 0.9,
-                'cripto': 2.2,         # aumentado
+                'cripto': 2.2,         
                 'renda_fixa': 0.6,
                 'cota': 1.0
             }
@@ -249,7 +253,7 @@ def atualizar_ativos():
             max_passo = {
                 'acao': 0.10,
                 'fundo': 0.08,
-                'cripto': 0.12,        # aumentado
+                'cripto': 0.12,        
                 'renda_fixa': 0.03,
                 'cota': 0.07
             }
@@ -257,13 +261,13 @@ def atualizar_ativos():
             limite_diario = {
                 'acao': 0.15,
                 'fundo': 0.12,
-                'cripto': 0.35,        # aumentado
+                'cripto': 0.35,        
                 'renda_fixa': 0.08,
                 'cota': 0.15
             }
         
 
-            intervalo_anos = 30 / (365 * 24 * 3600)   # 30 segundos em anos
+            intervalo_anos = 30 / (365 * 24 * 3600)   
 
             # Carrega variação acumulada do dia
             variacao_diaria = {}
@@ -271,9 +275,9 @@ def atualizar_ativos():
             for row in rows:
                 variacao_diaria[row['ativo_id']] = row['variacao']
 
-            updates = []          # (novo_valor, id)
-            historico = []        # (investimento_id, preco, data)
-            variacoes_para_salvar = []   # (ativo_id, data, variacao_nova)
+            updates = []          
+            historico = []        
+            variacoes_para_salvar = []   
             ativos_removidos = []
 
             for ativo in ativos:

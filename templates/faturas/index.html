@@ -1,68 +1,86 @@
-{% extends 'layouts/base_home.html' %}
-{% block title %}Faturas - Lumo Digital{% endblock %}
+{% extends "layouts/base_home.html" %}
+{% block title %}Minhas Faturas - Lumo Digital{% endblock %}
 
 {% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/faturas/style.css') }}">
 
-
-<main class="faturas-wrapper">
-    <div class="app-container">
-        <h1>Faturas</h1>
-
-        <!-- Saldo Disponível -->
-        <div id="saldo-atual" class="saldo-card">
-            <span>Saldo Disponível: R$ {{ "{:,.2f}".format(session['user_info']['saldo']) }}</span>
-            <button class="btn-pagar" id="btn-pagar-todas">Pagar Todas</button>
-        </div>
-        <div class="faturas-list">
-
-            {% if faturas %}
-            <h2 class="fatura-title">Você tem Faturas Pendentes</h2>
-            {% for fatura in faturas %}
-            <div class="fatura-container">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Tipo</th>
-                            <th>Valor</th>
-                            <th>Status</th>
-                            <th>Data de vencimento</th>
-                            <th>Juros</th>
-                            <th>Descrição</th>
-                            <th>Ação</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>{{ fatura.tipo }}</td>
-                            <td>R$ {{ "%.2f"|format(fatura.valor) }}</td>
-                            <td>{{ fatura.status }}</td>
-                            <td>{{ fatura.data_vencimento[:10].split('-')[2] }}/{{
-                                fatura.data_vencimento[:10].split('-')[1] }}/{{
-                                fatura.data_vencimento[:10].split('-')[0] }}</td>
-                            <td>{{ fatura.juros }}%</td>
-                            <td>{{ fatura.descricao }}</td>
-                            <td>
-                                <form method="post" action="/faturas/pagar">
-                                    <input type="hidden" name="fatura_id" value="{{ fatura.id }}">
-                                    <button type="submit" class="btn-pagar">Pagar</button>
-                                </form>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-            {% endfor %}
-            {% else %}
-            <div class="fatura-container">
-                <h2 class="fatura-title">Você não tem faturas pendentes</h2>
-            </div>
-            {% endif %}
-        </div>
+<div class="faturas-container">
+  <div class="header-section">
+    <h1>
+      <i class="fas fa-file-invoice-dollar" style="color: #3b82f6;"></i> Minhas Faturas
+    </h1>
+    <div class="saldo-card">
+      <i class="fas fa-wallet"></i>
+      <span>Saldo disponível:</span>
+      <span class="saldo-valor" id="saldo-valor">R$ {{ session['user_info']['saldo']|round(2) }}</span>
     </div>
-</main>
+  </div>
 
+  <div class="filtros">
+    <div class="search-box">
+      <i class="fas fa-search"></i>
+      <input type="text" id="search-input" placeholder="Buscar por tipo, descrição ou valor...">
+    </div>
+    <div class="status-filters">
+      <button class="status-btn active" data-status="all">Todas</button>
+      <button class="status-btn" data-status="pendente">Pendentes</button>
+      <button class="status-btn" data-status="pago">Pagas</button>
+    </div>
+    <button class="btn-pagar-todas" id="pagar-todas-btn">
+      <i class="fas fa-money-bill-wave"></i> Pagar todas pendentes
+    </button>
+  </div>
+
+  <div class="faturas-grid" id="faturas-grid">
+    {% for fatura in faturas %}
+    <div class="fatura-card" data-id="{{ fatura.id }}" data-tipo="{{ fatura.tipo }}" data-descricao="{{ fatura.descricao }}" data-valor="{{ fatura.valor }}" data-status="{{ fatura.status }}">
+      <div class="card-header">
+        <span class="tipo">
+          <i class="fas fa-receipt"></i> {{ fatura.tipo|capitalize }}
+        </span>
+        <span class="status {{ fatura.status }}">
+          {% if fatura.status == 'pendente' %}Pendente{% else %}Pago{% endif %}
+        </span>
+      </div>
+      <div class="card-body">
+        <div class="valor">R$ {{ "%.2f"|format(fatura.valor) }}</div>
+        <div class="descricao">
+          <i class="fas fa-align-left"></i> {{ fatura.descricao if fatura.descricao else 'Sem descrição' }}
+        </div>
+        <div class="vencimento">
+          <i class="far fa-calendar-alt"></i> Vence em: {{ fatura.data_vencimento|replace('T', ' ')|truncate(16, True) }}
+        </div>
+      </div>
+      <div class="card-footer">
+        {% if fatura.status == 'pendente' %}
+        <button class="btn-pagar" data-id="{{ fatura.id }}">
+          <i class="fas fa-credit-card"></i> Pagar agora
+        </button>
+        {% else %}
+        <button class="btn-pagar" disabled style="background: #e2e8f0; color: #64748b;">
+          <i class="fas fa-check-circle"></i> Paga
+        </button>
+        {% endif %}
+      </div>
+    </div>
+    {% else %}
+    <div class="empty-state">
+      <i class="fas fa-inbox" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+      <p>Nenhuma fatura encontrada.</p>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast" class="toast-notification"></div>
+
+<script>
+    // URLs geradas pelo Flask
+    const urlPagarFatura = "{{ url_for('faturas.processar_pagamento') }}";
+    const urlPagarTodas = "{{ url_for('faturas.pagar_todas_faturas') }}";
+</script>
 <script src="{{ url_for('static', filename='js/faturas.js') }}"></script>
-{% include "components/popup.html" %}
-
 {% endblock %}

@@ -2,9 +2,14 @@ from functools import total_ordering
 from utils.validators import get_db
 import random
 import sqlite3
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
+
+# ----------------------------------------------------------------------
+# Funções de consulta e manipulação de faturas
+# ----------------------------------------------------------------------
 
 def get_faturas(conta_id):
+    """Retorna todas as faturas de uma conta (sem conversão de fuso)."""
     conn = get_db()
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM faturas WHERE conta_id = ?", (conta_id,))
@@ -12,45 +17,46 @@ def get_faturas(conta_id):
     conn.close()
     return faturas
 
+
 def pagar_fatura(fatura_id, conn=None):
-    # Se não recebeu conexão, abre uma nova
+    """Marca uma fatura como paga."""
     local_conn = conn if conn else get_db()
     cursor = local_conn.cursor()
-    
     cursor.execute("UPDATE faturas SET status = 'pago' WHERE id = ?", (fatura_id,))
-    
-    # Só commita e fecha se a conexão for local (criada aqui dentro)
     if not conn:
         local_conn.commit()
         local_conn.close()
     return True
 
-def registrar_transacao(conta_id, valor, conn=None):
+
+
+
+def registrar_transacao(conta_id, valor, tipo, descricao, conn=None):
     local_conn = conn if conn else get_db()
     cursor = local_conn.cursor()
-    
+    data_utc = datetime.now(timezone.utc).isoformat()
     cursor.execute("""
-        INSERT INTO transacoes_conta (conta_id, valor, tipo, descricao)
-        VALUES (?, ?, 'debito', 'Pagamento de fatura')
-    """, (conta_id, valor))
-    
+        INSERT INTO transacoes_conta (conta_id, valor, tipo, descricao, data)
+        VALUES (?, ?, ?, ?, ?)
+    """, (conta_id, valor, tipo, descricao, data_utc))
     if not conn:
         local_conn.commit()
         local_conn.close()
-    return True
+
 
 def deletar_fatura(fatura_id, conn=None):
+    """Remove uma fatura (utilizado apenas em contexto específico)."""
     local_conn = conn if conn else get_db()
     cursor = local_conn.cursor()
-    
     cursor.execute("DELETE FROM faturas WHERE id = ?", (fatura_id,))
-    
     if not conn:
         local_conn.commit()
         local_conn.close()
     return True
 
+
 def get_valor_fatura(fatura_id, conta_id):
+    """Retorna o valor de uma fatura específica."""
     conn = get_db()
     cursor = conn.cursor()
     cursor.execute("SELECT valor FROM faturas WHERE id = ? AND conta_id = ?", (fatura_id, conta_id))
@@ -58,30 +64,101 @@ def get_valor_fatura(fatura_id, conta_id):
     conn.close()
     return fatura
 
+
+# ----------------------------------------------------------------------
+# Funções de controle de limite
+# ----------------------------------------------------------------------
+
+def limitar_faturas_pagas(conta_id, conn=None):
+    """Mantém no máximo 100 faturas pagas, removendo as mais antigas."""
+    local_conn = conn if conn else get_db()
+    cursor = local_conn.cursor()
+
+    cursor.execute("SELECT COUNT(*) FROM faturas WHERE conta_id = ? AND status = 'pago'", (conta_id,))
+    count_pagas = cursor.fetchone()[0]
+
+    if count_pagas > 100:
+        excedente = count_pagas - 100
+        cursor.execute("""
+            DELETE FROM faturas 
+            WHERE id IN (
+                SELECT id FROM faturas 
+                WHERE conta_id = ? AND status = 'pago'
+                ORDER BY id ASC 
+                LIMIT ?
+            )
+        """, (conta_id, excedente))
+
+    if not conn:
+        local_conn.commit()
+        local_conn.close()
+
+
+def limitar_faturas_pendentes(conta_id, conn=None):
+    """Garante no máximo 50 faturas pendentes, removendo as mais antigas."""
+    local_conn = conn if conn else get_db()
+    cursor = local_conn.cursor()
+
+    cursor.execute("SELECT COUNT(*) FROM faturas WHERE conta_id = ? AND status = 'pendente'", (conta_id,))
+    count_pendentes = cursor.fetchone()[0]
+
+    if count_pendentes > 50:
+        excedente = count_pendentes - 50
+        cursor.execute("""
+            DELETE FROM faturas 
+            WHERE id IN (
+                SELECT id FROM faturas 
+                WHERE conta_id = ? AND status = 'pendente'
+                ORDER BY id ASC 
+                LIMIT ?
+            )
+        """, (conta_id, excedente))
+
+    if not conn:
+        local_conn.commit()
+        local_conn.close()
+
+
+# ----------------------------------------------------------------------
+# Funções auxiliares para geração de valores
+# ----------------------------------------------------------------------
+
 def gerar_valor(tipo):
+    """Gera um valor aleatório dentro da faixa definida para o tipo."""
     ranges = {
         "luz": (80, 200),
         "agua": (50, 150),
-        "internet": (70, 150),
+        "internet": (100, 250),
         "aluguel": (400, 1200),
         "celular": (40, 100),
         "academia": (60, 120),
         "streaming": (20, 60),
-
-        # extras (caso use depois)
         "uber": (10, 60),
         "ifood": (25, 120),
         "mercado": (100, 400),
-        "gasolina": (120, 300),
+        "gasolina": (200, 500),
         "multa": (100, 500),
     }
-
     minimo, maximo = ranges.get(tipo, (20, 300))
     return round(random.uniform(minimo, maximo), 2)
 
+
+# ----------------------------------------------------------------------
+# Geração de faturas (mensais obrigatórias e aleatórias)
+# ----------------------------------------------------------------------
+
 def gerar_faturas_mensais_obrigatorias(conta_id):
+    """Gera as faturas mensais fixas (luz, água, etc.) com data de vencimento em UTC."""
     conn = get_db()
     cursor = conn.cursor()
+
+    # Verifica limite de pendentes
+    cursor.execute("SELECT COUNT(*) FROM faturas WHERE conta_id = ? AND status = 'pendente'", (conta_id,))
+    pendentes = cursor.fetchone()[0]
+    if pendentes >= 50:
+        print(f"Usuário {conta_id} já possui 50 faturas pendentes. Não serão geradas novas.")
+        conn.close()
+        return
 
     nomes_tipos = [
         ("luz", "Conta de luz"),
@@ -92,21 +169,20 @@ def gerar_faturas_mensais_obrigatorias(conta_id):
         ("academia", "Mensalidade academia"),
         ("streaming", "Assinatura streaming"),
     ]
-    
+
+    agora_utc = datetime.now(timezone.utc)
     faturas_mensais = []
 
     for nome, descricao in nomes_tipos:
         valor = gerar_valor(nome)
-
         faturas_mensais.append((
             nome,
             valor,
             "pendente",
-            datetime.now() + timedelta(hours=1),
+            agora_utc + timedelta(hours=1),   # vence em 1 hora UTC
             descricao
         ))
 
-    # Inserir no banco
     cursor.executemany("""
         INSERT INTO faturas (conta_id, tipo, valor, status, data_vencimento, descricao)
         VALUES (?, ?, ?, ?, ?, ?)
@@ -115,16 +191,17 @@ def gerar_faturas_mensais_obrigatorias(conta_id):
         for t, v, s, d, desc in faturas_mensais
     ])
 
+    limitar_faturas_pendentes(conta_id, conn=conn)   # aplica limite após inserção
     conn.commit()
     conn.close()
     print("Faturas mensais criadas")
-    
 
 
 def gerar_faturas_aleatorias(conta_id):
+    """Gera faturas aleatórias com data de vencimento em UTC."""
     conn = get_db()
     cursor = conn.cursor()
-    
+
     tipos_aleatorios = [
         ("uber", "Corrida de aplicativo"),
         ("ifood", "Pedido delivery"),
@@ -136,26 +213,22 @@ def gerar_faturas_aleatorias(conta_id):
         ("consulta", "Consulta médica"),
     ]
 
+    agora_utc = datetime.now(timezone.utc)
     faturas_aleatorias = []
 
     for tipo, descricao in tipos_aleatorios:
         valor = gerar_valor(tipo)
-        
         faturas_aleatorias.append((
             tipo,
             valor,
             "pendente",
-            datetime.now() + timedelta(hours=1),
+            agora_utc + timedelta(hours=1),
             descricao
         ))
-    
-    #  sorteia quantidade
+
     quantidade = random.randint(1, 5)
-    
-    # pega só algumas
     faturas_escolhidas = random.sample(faturas_aleatorias, quantidade)
-    
-    # Inserir no banco (AGORA CORRETO)
+
     cursor.executemany("""
         INSERT INTO faturas (conta_id, tipo, valor, status, data_vencimento, descricao)
         VALUES (?, ?, ?, ?, ?, ?)
@@ -163,37 +236,40 @@ def gerar_faturas_aleatorias(conta_id):
         (conta_id, t, v, s, d.isoformat(), desc)
         for t, v, s, d, desc in faturas_escolhidas
     ])
-    
+
+    limitar_faturas_pendentes(conta_id, conn=conn)   # aplica limite
     conn.commit()
     conn.close()
-
-    print(f"{quantidade} faturas aleatórias criadas 🚀")
+    print(f"{quantidade} faturas aleatórias criadas")
 
 
 def gerar_faturas_mensais_todos_usuarios():
-    """Função wrapper para o scheduler - gera faturas para todos os usuários"""
+    """Wrapper para o scheduler – gera faturas mensais para todos os usuários."""
     conn = get_db()
     cursor = conn.cursor()
     cursor.execute("SELECT id FROM contas")
     contas = cursor.fetchall()
     conn.close()
-    
+
     for conta in contas:
         gerar_faturas_mensais_obrigatorias(conta['id'])
 
 
 def gerar_faturas_aleatorias_todos_usuarios():
-    """Função wrapper para o scheduler - gera faturas aleatórias para todos os usuários"""
+    """Wrapper para o scheduler – gera faturas aleatórias para todos os usuários."""
     conn = get_db()
     cursor = conn.cursor()
     cursor.execute("SELECT id FROM contas")
     contas = cursor.fetchall()
     conn.close()
-    
+
     for conta in contas:
         gerar_faturas_aleatorias(conta['id'])
-        
 
+
+# ----------------------------------------------------------------------
+# Aplicação de juros (executada periodicamente)
+# ----------------------------------------------------------------------
 
 def checa_juros():
     """
@@ -211,30 +287,24 @@ def checa_juros():
     """)
     faturas = cursor.fetchall()
 
-    agora = datetime.now()
+    agora_utc = datetime.now(timezone.utc)
 
     for fatura in faturas:
         try:
             data_vencimento = datetime.fromisoformat(fatura['data_vencimento'])
-            if agora <= data_vencimento:
-                continue  # ainda não venceu
+            if agora_utc <= data_vencimento:
+                continue
 
-            # Horas de atraso (pode ser fracionado)
-            atraso_segundos = (agora - data_vencimento).total_seconds()
+            atraso_segundos = (agora_utc - data_vencimento).total_seconds()
             atraso_horas = atraso_segundos / 3600
 
-            # Extrai valores atuais
             valor_atual = float(fatura['valor'] or 0)
             juros_acumulado = float(fatura['juros'] or 0)
 
-            # Valor base = valor original (sem nenhum juro)
             valor_base = valor_atual - juros_acumulado
-
-            # Total de juros devido até agora (juros simples sobre o valor base)
             juros_total = valor_base * 0.02 * atraso_horas
             novo_valor = valor_base + juros_total
 
-            # Atualiza a fatura com os valores totais
             cursor.execute("""
                 UPDATE faturas
                 SET valor = ?, juros = ?
@@ -250,4 +320,3 @@ def checa_juros():
 
     conn.commit()
     conn.close()
-    print("Juros aplicados nas faturas atrasadas 🚀")
