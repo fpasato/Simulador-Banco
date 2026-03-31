@@ -45,10 +45,8 @@
   <!-- Lista de transações (cards) -->
   <div class="transacoes-grid" id="transacoes-grid">
     {% for trans in transacoes %}
-    <div class="transacao-card" 
-         data-tipo="{{ trans.tipo }}" 
-         data-data="{{ trans.data.split('T')[0] }}"
-         data-valor="{{ trans.valor }}">
+    <div class="transacao-card" data-tipo="{{ trans.tipo }}" data-data="{{ trans.data.split(' ')[0].split('T')[0] }}"
+      data-valor="{{ trans.valor }}">
       <div class="card-icon">
         <i class="fas {% if trans.tipo == 'deposito' %}fa-arrow-down{% else %}fa-arrow-up{% endif %}"></i>
       </div>
@@ -57,19 +55,29 @@
           <span class="tipo-badge {{ trans.tipo }}">
             {{ trans.tipo|upper }}
           </span>
-          <span class="data">{{ trans.data.split('T')[0] | replace('-', '/') }}</span>
+          <span class="data">
+            {{ trans.data.split(' ')[0].split('T')[0] | replace('-', '/') }}
+          </span>
         </div>
         <div class="descricao">
           {{ trans.descricao if trans.descricao else 'Sem descrição' }}
         </div>
-        <div class="valor {% if trans.tipo == 'deposito' %}positivo{% else %}negativo{% endif %}">
-          {% if trans.tipo == 'deposito' %}
-            + R$ {{ "%.2f"|format(trans.valor) }}
-          {% elif trans.tipo == 'debito' %}
-            - R$ {{ "%.2f"|format(trans.valor) }}
-          {% else %}
-            R$ {{ "%.2f"|format(trans.valor) }}
-          {% endif %}
+        {% set is_pix_recebido = 'PIX_RECEBIDO' in trans.descricao or 'Recebido via Pix' in trans.descricao %}
+
+        <div class="valor 
+            {% if trans.tipo == 'deposito' or is_pix_recebido %}
+              positivo
+            {% else %}
+              negativo
+            {% endif %}
+          ">
+            {% set valor_abs = trans.valor | abs %}
+
+            {% if trans.tipo == 'deposito' or is_pix_recebido %}
+              + R$ {{ "%.2f"|format(valor_abs) }}
+            {% else %}
+              - R$ {{ "%.2f"|format(valor_abs) }}
+            {% endif %}
         </div>
         <div class="conta">Conta: {{ trans.numero_conta }}</div>
       </div>
@@ -85,77 +93,67 @@
 
 <!-- Toast (opcional) -->
 <div id="toast" class="toast-notification"></div>
-
 <script>
-  // Filtro por data e tipo (JavaScript puro)
-  const transacoesCards = document.querySelectorAll('.transacao-card');
-  const dataInicio = document.getElementById('data-inicio');
-  const dataFim = document.getElementById('data-fim');
-  const tipoFiltro = document.getElementById('tipo-filtro');
-  const limparBtn = document.getElementById('limpar-filtros');
-  const totalSpan = document.getElementById('total-transacoes');
-
-  function aplicarFiltros() {
-    let inicio = dataInicio.value ? new Date(dataInicio.value) : null;
-    let fim = dataFim.value ? new Date(dataFim.value) : null;
-    let tipo = tipoFiltro.value;
-    let visiveis = 0;
-
-    transacoesCards.forEach(card => {
-      let dataCardStr = card.getAttribute('data-data');
-      let dataCard = new Date(dataCardStr);
-      let tipoCard = card.getAttribute('data-tipo');
-      let mostrar = true;
-
-      if (inicio && dataCard < inicio) mostrar = false;
-      if (fim && dataCard > fim) mostrar = false;
-      if (tipo !== 'all' && tipoCard !== tipo) mostrar = false;
-
-      if (mostrar) {
-        card.style.display = '';
-        visiveis++;
-      } else {
-        card.style.display = 'none';
-      }
-    });
-
-    totalSpan.textContent = visiveis;
-    if (visiveis === 0 && transacoesCards.length > 0) {
-      // Se não há cards visíveis mas existem cards, mostra uma mensagem no lugar
-      const emptyDiv = document.querySelector('.empty-state');
-      if (emptyDiv) emptyDiv.style.display = 'none';
-      // Se não houver empty-state, cria uma mensagem temporária (opcional)
-    } else if (visiveis > 0) {
-      const emptyDiv = document.querySelector('.empty-state');
-      if (emptyDiv) emptyDiv.style.display = 'none';
-    } else if (transacoesCards.length === 0) {
-      // Nenhum card, mantém empty-state (já está no HTML)
+  (function () {
+    // Aguarda o DOM carregar
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', corrigirPixRecebido);
+    } else {
+      corrigirPixRecebido();
     }
-  }
 
-  function limparFiltros() {
-    dataInicio.value = '';
-    dataFim.value = '';
-    tipoFiltro.value = 'all';
-    aplicarFiltros();
-  }
+    function corrigirPixRecebido() {
+      const cards = document.querySelectorAll('.transacao-card');
+      console.log('🔧 Corrigindo PIX recebido – cards encontrados:', cards.length);
+      let corrigidos = 0;
 
-  dataInicio.addEventListener('change', aplicarFiltros);
-  dataFim.addEventListener('change', aplicarFiltros);
-  tipoFiltro.addEventListener('change', aplicarFiltros);
-  limparBtn.addEventListener('click', limparFiltros);
+      cards.forEach(card => {
+        const descricao = card.querySelector('.descricao')?.innerText || '';
+        const tipoBadge = card.querySelector('.tipo-badge');
+        const valorDiv = card.querySelector('.valor');
+        const iconeDiv = card.querySelector('.card-icon i');
 
-  // Inicializar contagem
-  aplicarFiltros();
+        // Verifica se é PIX recebido (texto exato que aparece)
+        const isPixRecebido = descricao.includes('Recebido via Pix') || descricao.includes('PIX_RECEBIDO');
 
-  // Pequeno toast helper (opcional)
-  function showToast(message, isError = false) {
-    const toast = document.getElementById('toast');
-    if (!toast) return;
-    toast.textContent = message;
-    toast.style.background = isError ? '#b91c1c' : '#10b981';
-    toast.classList.add('show');
-    setTimeout(() => toast.classList.remove('show'), 3000);
-  }
+        if (isPixRecebido && tipoBadge?.classList.contains('debito')) {
+          console.log('✅ Corrigindo:', descricao.substring(0, 50));
+
+          // 1. Badge
+          tipoBadge.classList.remove('debito');
+          tipoBadge.classList.add('deposito');
+          tipoBadge.innerText = 'DEPÓSITO';
+
+          // 2. Valor (cor e sinal)
+          valorDiv.classList.remove('negativo');
+          valorDiv.classList.add('positivo');
+          let valorTexto = valorDiv.innerText;
+          if (valorTexto.startsWith('-')) {
+            valorDiv.innerText = '+' + valorTexto.substring(1);
+          }
+
+          // 3. Ícone
+          if (iconeDiv) {
+            iconeDiv.classList.remove('fa-arrow-up');
+            iconeDiv.classList.add('fa-arrow-down');
+          }
+
+          // 4. Atributo data-tipo (para filtros)
+          card.setAttribute('data-tipo', 'deposito');
+
+          corrigidos++;
+        }
+      });
+
+      console.log(`🏁 Correção finalizada. ${corrigidos} transações ajustadas.`);
+
+      // Se a função aplicarFiltros existir, chame-a para atualizar a contagem
+      if (typeof aplicarFiltros === 'function') {
+        aplicarFiltros();
+      }
+    }
+  })();
 </script>
+
+<script src="{{ url_for('static', filename='js/extrato.js') }}"></script>
 {% endblock %}
