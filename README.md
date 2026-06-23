@@ -58,7 +58,7 @@ A aplicação ficará disponível localmente no navegador.
 
 ---
 
-## Observações
+## Observações 🚨🚨🚨
 
 Este projeto foi feito para estudo e foi crescendo aos poucos conforme eu aprendia Flask e adicionava novas funcionalidades.
 
