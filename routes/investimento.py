@@ -53,8 +53,8 @@ def investimento():
     return render_template(
         "investimento/index.html",
         carteira=carteira,
-        investimentos_disponiveis=investimentos_disponiveis,   # opcional
-        investimentos_por_tipo=investimentos_por_tipo,        # ESSENCIAL
+        investimentos_disponiveis=investimentos_disponiveis,   
+        investimentos_por_tipo=investimentos_por_tipo,        
         valor_carteira=valor_carteira,
         saldo=saldo_atual,
         session=session,
@@ -199,9 +199,7 @@ def atualizar_precos():
         investimentos_disponiveis = investimentos_data['investimentos']
         with notificacoes_lock:
             notificacoes = notificacoes_pendentes.pop(conta_id, [])
-            
-        from datetime import datetime
-        server_time = int(time.time() * 1000)  # em ms
+        server_time = int(time.time() * 1000) 
         
         
         return jsonify({

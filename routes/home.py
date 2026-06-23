@@ -111,8 +111,6 @@ def get_saldo():
     
     conn = get_db()
     cursor = conn.cursor()
-    
-    # 🔥 BUSCA DIRETO DO BANCO (não da sessão)
     cursor.execute("SELECT saldo FROM contas WHERE id = ?", (conta_id,))
     resultado = cursor.fetchone()
     conn.close()

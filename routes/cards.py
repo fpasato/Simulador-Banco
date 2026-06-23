@@ -19,7 +19,6 @@ def cards():
     cartao_credito = get_card(numero_conta, "credito")
     cartao_debito = get_card(numero_conta, "debito")
 
-    # 🔥 NOVA LÓGICA (SEM TABELA FATURAS)
     if cartao_credito:
         limite = cartao_credito["limite"]
         valor = calcular_fatura(cartao_credito["id"])

@@ -94,7 +94,7 @@ def gerar_investimentos():
         try:
             cursor.execute("SELECT id FROM investimentos WHERE nome = ?", (nome,))
             if cursor.fetchone():
-                print(f"⚠️ Ativo já existe: {nome}")
+                print(f"Ativo já existe: {nome}")
                 continue
 
             cursor.execute("""
@@ -104,7 +104,7 @@ def gerar_investimentos():
             """, (nome, descricao, valor, risco, valor, tipo, setor, setor))
             inseridos += 1
         except Exception as e:
-            print(f"❌ Erro ao inserir {nome}: {e}")
+            print(f"Erro ao inserir {nome}: {e}")
 
     conn.commit()
     conn.close()
