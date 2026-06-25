@@ -58,15 +58,15 @@ A aplicação ficará disponível localmente no navegador.
 
 ---
 
-## Observações 🚨🚨🚨
+## Observações
 
-Este projeto foi feito para estudo e foi crescendo aos poucos conforme eu aprendia Flask e adicionava novas funcionalidades.
+Este projeto foi feito enquanto eu aprendia Flask e desenvolvimento web.
 
-Por isso, algumas partes da aplicação poderiam ser melhor organizadas ou separadas em mais camadas de serviço em uma futura refatoração.
+Conforme fui estudando e tendo novas ideias, fui adicionando funcionalidades e expandindo o sistema. Por isso, algumas partes do código e da estrutura poderiam ser melhor organizadas hoje em uma futura refatoração.
 
-O foco principal foi aprender conceitos de desenvolvimento web, banco de dados e lógica de negócio, e não seguir todos os padrões utilizados em aplicações de produção.
+Mesmo assim, decidi manter o projeto como ele foi construído, pois ele mostra minha evolução durante o aprendizado e os conceitos que pratiquei ao longo do desenvolvimento.
 
-Este sistema é apenas uma simulação e não possui os requisitos de segurança e conformidade necessários para um banco real.
+É só uma simulação e não possui os requisitos de segurança
 
 ## Screenshots
 
